@@ -1,0 +1,422 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Simulation of macropores}\label{sec:macro}
+
+The approach to simulate hydraulic effective structures on a given CATFLOW geometry comprises 
+i) the generation of a simulation grid in the desired spatial resolution of the macroporous
+structures, ii) the actual simulation of macropores, iii) refinement of the discretization of 
+simulation nodes and generation of a CATFLOW geometry file, and iv) representation of the 
+simulated macropores as grids for defining "macroporous soil types" or multipliers for 
+scaling hydraulic conductivities.  
+
+For the simulation of macroporous structures three functions are available, which are 
+complemented with functions for creating a model discretization:
+ 
+ \begin{itemize}
+\item{\code{sim.mak()} and \code{discretize.mak()}: }{Vertical, tortuous structures}
+\item{\code{sim.pipe()} and \code{discretize.pipe()}: }{Horizontal, tortuous structures}
+\item{\code{sim.rectmak()} and \code{discretize.rect()}: }{Connected structures}
+\end{itemize}
+
+
+\subsection{Simple example for the simulation of macropores}\label{simplemacro}
+The first step is to generate a simulation grid in fine resolution with the function \code{make.simgrid()}.
+Let us resume the example from above and produce a simulation grid for the same slope line (the column names in \code{test.slope} are for illustration purposes only):
+
+<<simgrd>>=
+ test.slope <- data.frame( north = simple.slope$xh,
+                           east = simple.slope$yh,
+                           elev = simple.slope$zh,
+                           slope.width = simple.slope$zh)
+ 
+ test.sim.grid <- make.simgrid(test.slope, prof.depth = 2, dx.max=0.1, dz.max = 0.1)
+@
+
+
+The spatial resolution of the resulting grid is determined by the desired maximal resolution and the 
+length of the profile; in this case the horizontal resolution is 0.0997 m instead of the desired 0.1 m.
+
+
+Let us now simulate some vertical structures with \code{sim.mak()} 
+and visualize the results with \code{plot.macros()} (Fig. \ref{fig:macsim1}):
+
+\begin{Schunk}
+\begin{Sinput}
+ attach(test.sim.grid)
+ set.seed(2011)
+ sim1 <- sim.mak(xnew, znew, width, ksmean=2.5e-6, kmacro=1.33e-5, x.step=10)
+ 
+ plot.macros(xnew, znew, sim1[[1]])
+\end{Sinput}
+\end{Schunk}
+
+\begin{figure}[h]
+\begin{center}
+<<macsim1, fig=TRUE, height=4,width=6, echo=FALSE, results=HIDE>>=
+ attach(test.sim.grid)
+ set.seed(2011)
+ opa <- par(mar=c(3,4,1,1))
+ sim1 <- sim.mak(xnew, znew, width, ksmean=2.5e-6, kmacro=1.33e-5, x.step=10)
+ plot.macros(xnew, znew, sim1[[1]])
+ par(opa)
+@
+\caption{\label{fig:macsim1} Schematic of slope line and simulated vertical macropores}
+\end{center}
+\end{figure}
+
+\clearpage
+Note that the grid \code{sim1} holds scaling factors of "1" for non-macroporous simulation 
+nodes, while 
+macropores have values above 1. Depending on the simulated number of macropores at a certain
+simulation node there can be different scaling factors for macropores. In the case of 
+\code{sim1}, the scaling factors are distributed as follows:
+
+\begin{Schunk}
+\begin{Sinput}
+ table(round(as.vector(sim1[[1]]), 2))
+\end{Sinput}
+\end{Schunk}
+
+<<results=TEX, echo=FALSE>>=
+  bla <- table(round(as.vector(sim1[[1]]), 2))
+  blub <- data.frame(  bla )   
+  colnames(blub)  <- c("Scaling factor","No. of nodes" ) 
+  print(xtable(blub, align=c("l","l","r")),include.rownames=FALSE)
+  rm(bla, blub)
+@ 
+
+The simulated scaling factors may be directly used as scaling factors for saturated
+hydraulic conductivity after calculating a respective model discretization
+and adjusting the grid dimensions; or the simulated structures may be used to define
+different soil-types for matrix and macropores, as demonstrated further below.
+
+
+The next step is to determine an appropriate model discretization to decrease the 
+number of simulation nodes in the fine simulation grid.  
+To keep the resolution fine around the macropores and make it more coarse in between, 
+we apply the function \code{discretize.mak()} on the simulated macropore geometry:
+
+\begin{Schunk}
+\begin{Sinput}
+ disc.sim1 <-  discretize.mak(sim1, maxdists = c(4,2), plot=T)
+ detach(test.sim.grid)
+\end{Sinput}
+\end{Schunk}
+
+Figure \ref{fig:discr_macsim1} shows the resulting discretization, which is fine vertically
+around the macropores, and fine at the top and around the endings of the macropores
+horizontally. 
+
+\begin{figure}[h]
+\begin{center}
+<<discretsim1, fig=TRUE, echo=FALSE, height=4, width=6>>=
+ opa <- par(mar=c(3,4,1,1))
+ disc.sim1 <- discretize.mak(sim1, maxdists = c(4,2), plot=T)
+ par(opa)
+@
+\caption{\label{fig:discr_macsim1} Schematic of discretization around simulated vertical macropores}
+\end{center}
+\end{figure}
+
+<<results=HIDE, echo=FALSE>>=
+try(detach(test.sim.grid))
+@
+
+\clearpage
+
+With this discretization in terms of eta and xsi-vectors the corresponding geo-file for
+\proglang{CATFLOW} can be generated:
+
+<<sim1geo, echo=FALSE, results=HIDE>>=
+  sim1.slope <- list(
+        xh = test.slope$east,
+        yh = test.slope$north,
+        zh = test.slope$elev,
+        bh  = test.slope$slope.width,
+        tot.area = 12 ,
+        numh = 1,
+        htyp = 1,
+        dyy = 2,
+        xsi = disc.sim1[["xsi"]],
+        eta = disc.sim1[["eta"]],
+        out.file="sim1.geo"      )
+
+  sim1.geom <-  make.geometry(sim1.slope, plotting=FALSE, project.path= "Catflow-TEST/in/")
+@
+
+\begin{Schunk}
+\begin{Sinput}
+  sim1.slope <- list(
+        xh = test.slope$east,
+        yh = test.slope$north,
+        zh = test.slope$elev,
+        bh  = test.slope$slope.width,
+        tot.area = 12 ,
+        numh = 1,
+        htyp = 1,
+        dyy = 2,
+        xsi = disc.sim1[["xsi"]],
+        eta = disc.sim1[["eta"]],
+        out.file="sim1.geo"      )
+
+  sim1.geom <-  make.geometry(sim1.slope, project.path= "Catflow-TEST/in/")
+  
+  file.show("Catflow-TEST/in/sim1.geo")              ## display the produced file ##
+\end{Sinput}
+\end{Schunk}
+
+
+
+In order to complete the generation of input files for this model setup, we need to define
+the respective grids and soil type definitions for the simulated macropore geometry, which
+will differ in the dimensions of the grid for each simulated macropore structure.
+Towards this end we can make use of some of the functions that were already introduced in 
+Section \ref{sec:input}.
+<<sim1input, results=HIDE>>=
+  attach(sim1.slope)
+  
+  # Multiplier grids (here all one)
+  write.facmat(output.file="Catflow-TEST/in/thsmult_sim1.dat")
+  write.facmat(output.file="Catflow-TEST/in/ksmult_sim1.dat")
+    
+  # initial conditions: soilhyd.ini (Psi or Theta or earlier simulation)
+   write.facmat(output.file="Catflow-TEST/in/soil_hyd_sim1.ini",
+                headr=paste("PSI   ", 0,  1, length(eta), length(xsi), numh),
+                fac = 0.8)
+    
+  # surface nodes (length xsi)
+    write.surface.pob(output.file="Catflow-TEST/in/surface_sim1.pob", lu=33 )
+  
+  detach(sim1.slope)  
+@      
+
+
+For the assignment of different soil types for matrix and macropores (or for scaling 
+hydraulic conductivity), we need a grid with the dimension of eta and xsi that indicates the
+positions of macroporous nodes. This grid can be calculated from the simulated macropores in fine resolution and the new discretization using \code{mac.grid()}:
+
+<<macgrid>>=
+  sim1.grid <- mac.grid(relfak = sim1[[1]], 
+                         xnew = test.sim.grid$xnew, 
+                          znew = test.sim.grid$znew,
+                           xsi_new = disc.sim1[["xsi"]], 
+                            eta_new = disc.sim1[["eta"]],
+                             plottin = FALSE)
+@
+
+
+In this case we want to assign different soil types for macropores and matrix.
+This is achieved by
+applying \code{assign.mac.soil()} on the \code{sim1.grid}. We will here define the soil
+matrix as soil type "1" and the macropores as a soil type "3":
+<<assignmacsoil, results=HIDE>>=
+  # soil types (nodewise)
+  assign.mac.soil(sim1.grid, output.file="Catflow-TEST/in/soilnodes_sim1.bod",
+                  soil.macro = 3, thresh = 0.9)
+@   
+
+
+Of course, we will have to add the definition of soil type "3" to the soil type definition
+file (repeating the first two entries from above):
+
+<<macrosoiltype>>=
+ cat(paste(
+      "3", "1 Loamy Sand, porosity 0.55, bulk dens 1 g/cm3",
+      "1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1.",           
+      "4.05e-5  0.55 0.06 12.40 2.28 -6.00 8.00 1000.00 0.80",
+      "0. 0. 0.", "0. 0. 0.", "0. 0. 0.", 
+      "2 Sandy Clay Loam (30% S, 40 % U; 30 % T)",
+      "1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1.",
+      "3.42e-6 0.48 0.08 0.96 1.5 -6.00 8.00 1200.00 0.80",
+      "0. 0. 0.", "0. 0. 0.", "0. 0. 0.",
+      "3 Poremedium",
+      "1 800 1.00 1.00 0.11 0.50 0.34 0.11 20.00 0.70 0.05 1. 1. 1.",
+      "1.5e-4 0.4 0.057 11.4 2.28 -4.00 4.00 1600.00 0.80",
+      "0. 0. 0.", "0. 0. 0.", "0. 0. 0.", sep="\n") ,
+  file = "Catflow-TEST/in/soils.def")       
+@
+
+
+The other input files, e.g., for climate or land-use, can be left unchanged from the 
+first example in Section \ref{sec:input}, so only the main control file 
+\footnote{Please note that this main control file overwrites the one created in Section \ref{sec:input}!} 
+and project control file with the respective output directory remain to be created:
+
+<<sim1control, results=HIDE>>=
+ # project control file,  default input.path="in"    
+    write.control("TEST.sim1.in",  
+        output.path= "sim1out",
+        project.path = "Catflow-TEST", 
+        slope.in.list = list(
+          slope1 = list(       
+              geo.file= "sim1.geo"            ,  # slope geometry     
+              soil.file= "soilnodes_sim1.bod" ,  # soil type assignment
+              ks.fac = "ksmult_sim1.dat"      ,  # multipliers for Ks
+              ths.fac = "thsmult_sim1.dat"    ,  # multipliers for theta_s 
+              macro.file = "profil.mak"    ,     # macropore multipliers
+              cv.file = "cont_vol.cv"      ,     # control volumes
+              ini.file = "soil_hyd_sim1.ini",    # initial conditions (theta/psi)
+              print.file = "printout.prt"  ,     # printout times
+              surf.file = "surface_sim1.pob",    # surface attributes
+              bc.file = "boundary.rb"            # boundary conditions
+              ) ))                   
+
+ # main control file
+ write.CATFLOW.IN("TEST.sim1.in", project.path = "Catflow-TEST")
+@
+
+Now CATFLOW can be run on this geometry with simulated macropores. The input files will be 
+taken from the "Catflow-TEST/in" subdirectory, while the results will be collected in the "Catflow-TEST/sim1out" 
+subdirectory.
+
+
+\clearpage
+                                                                 
+\subsection{Advanced example for simulation of macropores}
+
+As briefly indicated in the rather simple example above, the \pkg{Catflow} package offers 
+various possibilites to produce model geometries with structural heterogeneity.    
+In the following it will be described how the three approaches for the simulation of 
+macroporous structures can be combined in order to build up more complex structures.
+
+The idea is to subsequently apply the functions \code{sim.mak()}, \code{sim.pipe} or 
+\code{sim.rect}; eventually with different function arguments. As an example, let us 
+combine the simulation of vertical macropores from Section \ref{simplemacro} 
+with a simulation of horizontal macropores using \code{sim.pipe} on the simulation grid 
+defined above, \code{test.sim.grid}:
+
+<<simmacro2, results=HIDE, echo=FALSE>>=
+  attach(test.sim.grid); set.seed(2011)
+  sim2 <- sim.pipe(relfak = sim1[[1]], xnew, znew, ml = 8,  
+                    start.depth=1, p.up =0.1, p.down=0, x.step=5)                    
+@
+
+\begin{Schunk}
+\begin{Sinput}
+  attach(test.sim.grid); set.seed(2011)
+  
+  sim2 <- sim.pipe(relfak = sim1[[1]], xnew, znew, ml = 8,  
+                    start.depth=1, p.up =0.1, p.down=0, x.step=5)                    
+\end{Sinput}
+\end{Schunk}
+
+
+The resulting structures are plotted with \code{plot.macros()} (Fig. \ref{fig:macsim2}):
+
+\begin{Schunk}
+\begin{Sinput}
+ plot.macros(xnew,znew, sim2[[1]]) 
+ detach(test.sim.grid)
+\end{Sinput}
+\end{Schunk}
+
+\begin{figure}[h]
+\begin{center}
+<<discretsim2, fig=TRUE, echo=FALSE, height=4, width=6>>=
+ opa <- par(mar=c(3,4,1,1))
+ plot.macros(xnew,znew, sim2[[1]]) 
+ par(opa)
+ detach(test.sim.grid)
+@
+\caption{\label{fig:macsim2} Schematic of slope line and combination of simulated vertical
+and horizontal macropores}
+\end{center}
+\end{figure}
+
+
+The grid \code{sim2} holds all of the simulated scaling factors and has the fine spatial 
+resolution of the simulation grid. 
+
+The next step is to determine a appropriate model discretization with
+a reduced number of nodes. In the case of combined macropore simulations, the discretization 
+functions are applied subsequently on each simulation result (Fig. \ref{fig:inddiscret}), and the resulting eta- and xsi-vectors
+are combined. When doing this, care must be taken not to duplicate 
+the regular nodes that are inserted at regular distances, which therefore are only introduced 
+in the first discretization \code{disc.sim1} (same as above). The combined vectors need to be sorted and have duplicates removed. Note: Care should be taken to which digit the vectors are rounded - the idea is to remove eta / xsi-values that are so close to each other that they represent the same node. This closeness depends on how fine the discretization and how long the slope is, so the number of digits might need adaptation.
+
+\begin{figure}[h]
+\begin{center}
+<<combdiscret, fig=TRUE>>=
+ layout(1:2); opa <- par(mar=c(4,4,1,1))
+ 
+ disc.sim1 <- discretize.mak(sim1, maxdists = c(4,2), plot=T) 
+  disc.sim2 <- discretize.pipe(sim2, plot=T, reg=F)  
+    
+ disc.sim2[["xsi"]] <- sort(unique(round(c(disc.sim1[["xsi"]], 
+                                            disc.sim2[["xsi"]]), 3)))
+  disc.sim2[["eta"]] <- sort(unique(round(c(disc.sim1[["eta"]], 
+                                              disc.sim2[["eta"]]),2)) )
+@
+\caption{\label{fig:inddiscret} Individual model discretizations for \code{sim1} (top) and \code{sim2} (bottom).}
+\end{center}
+\end{figure}
+
+
+To visualize the combined discretization vectors, the following code chunk can be used:
+
+\begin{Schunk}
+\begin{Sinput}
+ plot(0:1,0:1,t="n", ann=F)
+     abline(v=disc.sim2[["xsi"]], col=8)
+      abline(h = c(0,1) )
+       abline(h= disc.sim2[["eta"]], col=3)
+        image(t(sim1[[1]]>1)[,nrow(sim1[[1]]):1], col=0:1, add=T)
+         image(t(sim2[[1]]>1)[,nrow(sim2[[1]]):1], col=0:1, add=T)
+\end{Sinput}
+\end{Schunk}
+
+
+\begin{figure}[h]
+\begin{center}
+<<plotcombdiscret, fig=TRUE, echo=FALSE>>=
+ ## Plot discretization "by hand"
+  plot(0:1,0:1,t="n", ann=F)
+    abline(v=disc.sim2[["xsi"]], col=8)
+     abline(h = c(0,1) )
+     abline(h= disc.sim2[["eta"]], col=3)
+     image(t(sim1[[1]]>1)[,nrow(sim1[[1]]):1], col=0:1, add=T)
+     image(t(sim2[[1]]>1)[,nrow(sim2[[1]]):1], col=0:1, add=T)
+@
+\caption{\label{fig:combineddiscret} Combined model discretizations for \code{sim1} and \code{sim2}.}
+\end{center}
+\end{figure}
+
+
+From here on the approach proceeds as described in Section \ref{simplemacro}.
+The next step would thus be the definition of a slope list with the slope line and the new model discretization:
+
+<<eval = FALSE>>=
+  sim2.slope <- list(
+        xh = test.slope$east,
+        yh = test.slope$north,
+        zh = test.slope$elev,
+        bh  = test.slope$slope.width,
+        tot.area = 12 ,
+        numh = 1,
+        htyp = 1,
+        dyy = 2,
+        xsi = disc.sim2[["xsi"]],
+        eta = disc.sim2[["eta"]],
+        out.file="sim2.geo"      )
+
+  sim2.geom <-  make.geometry(sim2.slope, project.path= "Catflow-TEST/in/")
+@                   
+
+
+A grid that indicates the positions of macropres is generated with \code{ mac.grid()}:
+<<macgrid2>>=
+  sim2.grid <- mac.grid(relfak = sim2[[1]], 
+                         xnew = test.sim.grid$xnew, 
+                          znew = test.sim.grid$znew,
+                           xsi_new = disc.sim2[["xsi"]], 
+                            eta_new = disc.sim2[["eta"]],
+                             plottin = T)
+@
+
+The remaining steps would be the definition of control files, multiplier grids, surface 
+attributes and the assignment of soil types in the same manner as described above.
+
+
+
+
+   

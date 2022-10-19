@@ -1,0 +1,446 @@
+\newpage
+\section[Preparing CATFLOW input files]{Preparing \proglang{CATFLOW} input files}\label{sec:input}
+
+The \pkg{Catflow} package offers additional possibilities for writing input files besides the geometry file, namely:
+\begin{itemize} 
+  \item \code{write.facmat()}: multiplier matrices for $K_s$ and $\theta_s$, initial conditions, soil IDs; 
+  \item \code{write.precip()}: precipitation time series; 
+  \item \code{write.climate()}: climatic data time series; 
+  \item \code{write.printout()}: printout times;  
+  \item \code{write.surface.pob()}: surface node attributes;
+  \item \code{write.control()}: project control files; and
+  \item \code{write.CATFLOW.IN()}: the main input file. 
+\end{itemize} 
+
+To obtain a complete file structure for running CATFLOW, some more files are
+created after these using basic \proglang{R} commands, but without using special functionality of the \pkg{Catflow} package. 
+
+%----------------------------------
+\subsection[Multiplier matrices for K_s and theta_s / Inital conditions]{Multiplier matrices for $K_s$ and $\theta_s$ / Inital conditions} 
+
+CATFLOW, since version 'CATSTAT', requires two files with multipliers, one for $K_s$ and one for $\theta_s$. These files can be generated using \code{write.facmat()}, which needs the discretization in terms of \code{eta} and \code{xsi}.
+These are contained in \code{test.geom} from Section~\ref{sec:geometry}, and are made available by attaching \code{test.geom}:
+
+<<facmat,results=HIDE, echo=FALSE>>=
+  attach(test.geom)   # attach the geometry to make 'eta' and 'xsi' available
+  write.facmat(output.file="Catflow-TEST/in/ksmult.dat")
+  write.facmat(output.file="Catflow-TEST/in/thsmult.dat")
+@
+
+%% same again in "beautiful printing" (with empty lines)
+\begin{Schunk}
+\begin{Sinput}
+ attach(test.geom)   # attach the geometry to make 'eta' and 'xsi' available
+    
+# Multipliers for scaling saturated hydraulic conductivity - default: all one
+ write.facmat(output.file="Catflow-TEST/in/ksmult.dat")
+ 
+ file.show("Catflow-TEST/in/ksmult.dat")            ## display the produced file ##   
+
+# Dummy multipliers for scaling saturated water content / porosity: always one
+ write.facmat(output.file="Catflow-TEST/in/thsmult.dat")
+ 
+ file.show("Catflow-TEST/in/thsmult.dat")           ## display the produced file ##     
+\end{Sinput}
+\end{Schunk}
+
+
+It is also possible to specify non-uniform values -- simply specify \code{fac} as a matrix of appropriate size.  \footnote{Note: CATFLOW currently cannot handle multipliers other than '1' for scaling saturated water content.}
+
+
+The same function may be used to specify initial conditions or soil type identifiers, but for these different header lines are needed:
+<<soilID,results=HIDE, echo=FALSE>>=
+# Initial conditions: Uniform Psi (0.8 m) 
+  write.facmat(output.file="Catflow-TEST/in/soilhyd.ini",
+               headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
+               fac = 0.8)
+# Soil type IDs: 
+   write.facmat(output.file="Catflow-TEST/in/soils.bod",
+               headr= paste("BODEN",  length(eta), length(xsi), 1),
+               fac = matrix(c(rep(1, ceiling(length(eta)/2)),rep(2,floor(length(eta)/2)) ), 
+                            nrow = length(eta), ncol = length(xsi))  ) 
+@                                     
+
+\begin{Schunk}
+\begin{Sinput}
+# Initial conditions: Uniform Psi (0.8 m) 
+ write.facmat(output.file="Catflow-TEST/in/soilhyd.ini",
+               headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
+               fac = 0.8)
+ 
+ file.show("Catflow-TEST/in/soilhyd.ini")           ## display the produced file ##   
+
+# Soil type IDs: 
+ write.facmat(output.file="Catflow-TEST/in/soils.bod",
+               headr= paste("BODEN",  length(eta), length(xsi), 1),
+               fac = matrix(c(rep(1, ceiling(length(eta)/2)),
+                              rep(2, floor(length(eta)/2)) ), 
+                            nrow = length(eta), ncol = length(xsi)) ) 
+ 
+ file.show("Catflow-TEST/in/soils.bod")             ## display the produced file ##
+\end{Sinput}
+\end{Schunk}
+
+\subsection{Precipitation time series} \label{sec:rain}
+
+CATFLOW requires a precipitation record from which the rainfall intensities 
+are interpolated between discrete time steps; rainfall intensities are thus only needed  
+at those time steps when they are changing. 
+
+The function \code{write.precip()} converts a regular rainfall record, i.e. intensity at uniform time intervals, to the CATFLOW specific format:
+
+<<rain, fig=TRUE, results = HIDE, echo = FALSE, height=4, width=6>>=
+# some artificial rainfall record
+  raindat <- data.frame("hours" = seq(0,48, by=0.5),
+                        "precip" = c(rep(0,30), 1, rep(3,4), rep(2,3), 
+                                      rep(0,25), rep(1,4), rep(0,30)) ) 
+ plot(raindat, t="s", ylab="Precip. [mm/h]")
+  write.precip(raindat, "Catflow-TEST/in/TEST.rain.dat", 
+                start.time= "01.01.2004 00:00:00" )
+@
+
+\begin{Schunk}
+\begin{Sinput}
+# some artificial rainfall record
+  raindat <- data.frame("hours" = seq(0,48, by=0.5),
+                        "precip" = c(rep(0,30), 1, rep(3,4), rep(2,3), 
+                                      rep(0,25), rep(1,4), rep(0,30)) ) 
+  
+  plot(raindat, t="s", ylab="Precip. [mm/h]")
+  
+  write.precip(raindat, "Catflow-TEST/in/TEST.rain.dat", 
+                    start.time= "01.01.2004 00:00:00" )
+                                      
+  file.show("Catflow-TEST/in/TEST.rain.dat")        ## display the produced file ##            
+\end{Sinput}
+\end{Schunk}
+
+
+%----------------------------------
+\subsection{Climatic data time series}\label{sec:clima} 
+
+ The function \code{write.climate()} writes a file with climatic data in the CATFLOW specific
+ format. This mainly affects the header of the file, which holds some default parameters. 
+ 
+ An example: 
+                                               
+<<clima, results=HIDE, echo=FALSE>>=
+ climadat <- data.frame(
+              "hours" = seq(0,48, by=0.5),
+              "GlobRad" =  ifelse(0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12) > 0,
+                                  0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12),  0),
+              "NetRad" = NA ,
+              "Temp" = 4 +  sin((seq(0,48, by=0.5) - 12)*pi/12)  ,
+              "RelHum" = 70 + 10* sin((seq(0,48, by=0.5))*pi/12) ,
+              "vWind"  =  rlnorm(97, 0,1) ,
+              "dirWind" = runif(97, 0, 359) 
+              )
+ write.climate(climadat, "Catflow-TEST/in/TEST.clima.dat", 
+                  start.time= "01.01.2004 00:00:00" )
+@
+
+\begin{Schunk}
+\begin{Sinput}
+# some climate record
+ climadat <- data.frame(
+              "hours" = seq(0,48, by=0.5),
+              "GlobRad" =  ifelse(0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12) > 0,
+                                  0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12),  0),
+              "NetRad" = NA ,
+              "Temp" = 4 +  sin((seq(0,48, by=0.5) - 12)*pi/12)  ,
+              "RelHum" = 70 + 10* sin((seq(0,48, by=0.5))*pi/12) ,
+              "vWind"  =  rlnorm(97, 0,1) ,
+              "dirWind" = runif(97, 0, 359) 
+              )
+ 
+ write.climate(climadat, "Catflow-TEST/in/TEST.clima.dat", 
+                          start.time= "01.01.2004 00:00:00" )
+
+ file.show("Catflow-TEST/in/TEST.clima.dat")        ## display the produced file ##   
+\end{Sinput}
+\end{Schunk}
+
+
+%----------------------------------
+\subsection{Printout times} 
+           
+To write a file with printout times in the CATFLOW specific
+format, \code{ write.printout()} can be used.
+
+In the following example, we construct a printout time file for dumping all results (\code{flag = 1}) in intervals of 0.5 h
+ 
+<<printout, results=HIDE, echo=FALSE>>=
+ write.printout(output.file = "Catflow-TEST/in/printout.prt", 
+                 start.time = "01.01.2004 00:00:00", 
+                 end.time = "03.01.2004 00:00:00", 
+                 intervall = 0.5, time.unit = "h",
+                 flag = 1)
+@  
+ 
+\begin{Schunk}
+\begin{Sinput}
+ write.printout(output.file = "Catflow-TEST/in/printout.prt", 
+                 start.time = "01.01.2004 00:00:00", 
+                 end.time = "03.01.2004 00:00:00", 
+                 intervall = 0.5, time.unit = "h",
+                 flag = 1)
+
+ file.show( "Catflow-TEST/in/printout.prt" )        ## display the produced file ##
+\end{Sinput}
+\end{Schunk}
+
+%----------------------------------
+\subsection{Surface node attributes} 
+
+The assignment of attributes (land-use, precipitation, climate, wind direction sectors)
+to the surface nodes of a CATFLOW model is done via the surface attribute file, which can be
+produced using \code{write.surface.pob()}. 
+
+In the following example, uniform values of land-use etc. are assigned to the surface nodes 
+in \code{test.geom}, which should be still atttached, and so we can use the lateral discretization vector \code{xsi} directly:
+
+<<surfPob, results=HIDE, echo=FALSE>>=
+  write.surface.pob(output.file = "Catflow-TEST/in/surface.pob", 
+                    xs = xsi, lu = 33, 
+                    windid = rep(1,4))  
+@  
+ 
+\begin{Schunk}
+\begin{Sinput}
+  write.surface.pob(output.file = "Catflow-TEST/in/surface.pob", 
+                    xs = xsi, lu = 33, 
+                    windid= rep(1,4))  
+
+ file.show( "Catflow-TEST/in/surface.pob" )         ## display the produced file ##
+\end{Sinput}
+\end{Schunk}
+
+
+%----------------------------------
+\subsection{Project control file and main control file} 
+
+The function \code{write.control()} offers the possibility to create a project specific control
+file with the simulation control parameters and the input/output filenames. Additionally,
+a directory for the output is created.
+
+In the following chunk we create a project control file with the input files that have been generated so far (simulation parameters can take default values here):
+
+<<control, results=HIDE, echo=FALSE>>=
+ write.control(output.file = "TEST.example.in",project.path = "Catflow-TEST",    
+ start.date = "01.01.2004 00:00:00.00", end.date = "03.01.2004 00:00:00",
+ slope.in.list = list( slope1 = list( geo.file = "test.geo", soil.file = "soils.bod", 
+                                 ks.fac = "ksmult.dat", ths.fac = "thsmult.dat", 
+                                 macro.file = "profil.mak", cv.file = "cont_vol.cv", 
+                                 ini.file = "soilhyd.ini",print.file = "printout.prt", 
+                                 surf.file = "surface.pob", bc.file = "boundary.rb")) )
+@
+
+\begin{Schunk}
+\begin{Sinput}
+ write.control(output.file = "TEST.example.in",   
+               project.path = "Catflow-TEST", 
+                start.date = "01.01.2004 00:00:00.00", 
+               end.date = "03.01.2004 00:00:00",
+               slope.in.list = list( slope1 = list( 
+                                geo.file = "test.geo", 
+                                soil.file = "soils.bod",
+                                ks.fac = "ksmult.dat", 
+                                ths.fac = "thsmult.dat", 
+                                macro.file = "profil.mak", 
+                                cv.file = "cont_vol.cv", 
+                                ini.file = "soilhyd.ini",
+                                print.file = "printout.prt",                                
+                                surf.file = "surface.pob", 
+                                bc.file = "boundary.rb") 
+                                ) )
+
+ file.show("Catflow-TEST/TEST.example.in" )           ## display the produced file ##
+\end{Sinput}
+\end{Schunk}
+
+Note that a output directory named 'out' has been added to the current working dir, if 
+it has not been already there.
+
+
+Now we can write the main control file, which merely contains the name of the project control file:
+<<mainFile, results=HIDE>>=
+ write.CATFLOW.IN("TEST.example.in", project.path = "Catflow-TEST")
+@
+
+%----------------------------------
+\subsection{Other files} 
+
+Some of the files given in the project control file have not been created so far,
+e.g. the hilllslope-specific in the \code{slope.in.list} of \code{write.control()}:
+\begin{itemize} 
+\item macro.file:  'Catflow-TEST/in/profil.mak'
+\item cv.file:  'Catflow-TEST/in/cont\_vol.cv'
+\item bc.file:  'Catflow-TEST/in/boundary.rb'
+\end{itemize} 
+ 
+To complete the file structure, these are produced with the basic \code{cat} command (of course, you could as well use any text editor to create these files):
+ 
+<<otherFiles, results = hide, echo = FALSE >>=
+# macro.file = "profil.mak"
+ cat(paste("1  0  2", "ari", "0.00 1.00 0.00 1.00 1  1.00 1.00 ", sep="\n"), 
+   file = "Catflow-TEST/in/profil.mak"  )
+# cv.file = "cont_vol.cv" 
+ cat(paste("1", "0.8   0.9   0.98   1.0",sep="\n"), 
+   file = "Catflow-TEST/in/cont_vol.cv"  )
+# bc.file = "boundary.rb"
+ cat(paste("L", "1  0", "0. 1. 0",   " ",
+           "R", "1  0", "0. 1. -10", " ",
+           "T", "1  0", "0. 1. -99 "," ",  
+           "B", "1  0", "0. 1. 0",   " ",
+           "S", "1  0", "0. 1. 0. 1. -99",   " ",
+           "M", 0 , sep="\n"),
+   file = "Catflow-TEST/in/boundary.rb"  )           
+@ 
+
+\begin{Schunk}
+\begin{Sinput}
+ # macro.file = "profil.mak"
+  cat(paste("1  0  2", "ari", "0.00 1.00 0.00 1.00 1  1.00 1.00 ", sep="\n"), 
+    file = "Catflow-TEST/in/profil.mak"  )
+
+ # cv.file = "cont_vol.cv" 
+  cat(paste("1", "0.8   0.9   0.98   1.0",sep="\n"), 
+    file = "Catflow-TEST/in/cont_vol.cv"  )
+
+ # bc.file = "boundary.rb"
+  cat(paste("L", "1  0", "0. 1. 0",   " ",
+            "R", "1  0", "0. 1. -10", " ",
+            "T", "1  0", "0. 1. -99 "," ",  
+            "B", "1  0", "0. 1. 0",   " ",
+            "S", "1  0", "0. 1. 0. 1. -99",   " ",
+            "M", 0 , sep="\n"),
+    file = "Catflow-TEST/in/boundary.rb"  )           
+\end{Sinput}
+\end{Schunk}
+
+
+The next bunch of files required by CATFLOW are the global simulation files defined in \code{global.in.list} for \code{write.control()}: 
+
+\begin{itemize} 
+<<globalIn, echo=FALSE, results = TEX>>=  # 
+  glob.files <-  eval(formals(write.control)$"global.in.list")   
+  glob.files <-  sapply(glob.files, unclass)[c(4,1,2,3)]
+  ID <- names( glob.files) 
+  names( glob.files)   <- NULL    
+  bla <-  cbind(  ID , glob.files )
+  
+  bla <-  apply(bla, 1, function(x) paste("\\item ", x[1], ":  'Catflow-TEST/in/", x[2] ,"'\n", 
+                                          sep="") )
+  bla <-  gsub("_","\\_",bla, fixed=T)
+  cat(bla)
+@
+
+\end{itemize} 
+
+These are created with the following chunks. First we generate the file for the definition
+of wind direction sectors:
+
+<<windsec>>=
+ cat(paste("4", "240   0.81", " 50   0.78", " 80   0.97", "220   0.94", sep="\n"), 
+  file = "Catflow-TEST/in/winddir.def")
+@
+
+
+This chunk writes a soil type definition for two soil types:
+
+<<soiltype>>=
+ cat(paste("2", "1 Loamy Sand, porosity 0.55, bulk dens 1 g/cm3",
+           "1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1.",           
+           "4.05e-5  0.55 0.06 12.40 2.28 -6.00 8.00 1000.00 0.80",
+           "0. 0. 0.", "0. 0. 0.", "0. 0. 0.", 
+           "2 Sandy Clay Loam (30% S, 40 % U; 30 % T)",
+           "1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1.",
+           "3.42e-6 0.48 0.08 0.96 1.5 -6.00 8.00 1200.00 0.80",
+           "0. 0. 0.", "0. 0. 0.", "0. 0. 0.", sep="\n") ,
+  file = "Catflow-TEST/in/soils.def")       
+@
+
+
+This chunk produces a a time-series definition file which links to the precipitation, 
+land-use and climate records (see \ref{sec:rain}, \ref{sec:clima}):
+
+<<timeser>>=
+ cat(paste("PREC", "1", "in/TEST.rain.dat", "",
+           "BC", "0", "", "SINKS","0", "", "SOLUTE", "0", "",
+           "LAND-USE", "in/landuse/lu_ts.dat", "", 
+           "CLIMATE", "1", "in/TEST.clima.dat", "", sep="\n"),
+  file = "Catflow-TEST/in/timeser.def")      
+@
+
+Finally, we can prepare all the files related to land-use specifications, some of which
+are placed into their own sub-directory:
+
+<<landuse, echo=FALSE, results=HIDE>>=
+ if(!file_test("-d", "Catflow-TEST/in/landuse")) dir.create("Catflow-TEST/in/landuse")
+# pointer to land-use parameters
+ cat(paste("3", "coniferous forest", "in/landuse/conif.par", sep ="             "),
+   file = "Catflow-TEST/in/landuse/lu_file.def") 
+# time-series of land-use parameters
+ cat(paste("01.01.2004 00:00:00.00", "in/landuse/lu_set1.dat", 
+            "01.01.2005 00:00:00.00", sep="\n"), 
+  file = "Catflow-TEST/in/landuse/lu_ts.dat")       
+# parameters of land-use type 'coniferous forest'
+ cat(paste(
+      paste("10", "KST", "MAK", "BFI", "BBG", "TWU", "PFH", 
+            "PALB", "RSTMIN", "WP_BFW", "F_BFW", sep= "   "),
+      "0.    3.     1.    5.    0.95   5.0    5.0     0.15    1.    1.      1.",
+      paste(c("1  ","366"), 
+            "2.     1.     1.     1.0   1.0    1.0     1.0   546.    0.05    30.",
+       sep="    ", collapse="\n"), sep="\n"), 
+  file = "Catflow-TEST/in/landuse/conif.par")
+# pointer to surface node attributes
+ cat(paste(1, "33  3    %coniferous forest", sep = "\n"),
+  file = "Catflow-TEST/in/landuse/lu_set1.dat")
+@
+
+\begin{Schunk}
+\begin{Sinput}
+ # make subdirectory
+  if(!file_test("-d", "Catflow-TEST/in/landuse")) dir.create("Catflow-TEST/in/landuse")
+  
+ # pointer to land-use parameters
+  cat(paste("3", "coniferous forest", "in/landuse/conif.par", sep ="             "),
+   file = "Catflow-TEST/in/landuse/lu_file.def") 
+ 
+ # time-series of land-use parameters
+  cat(paste("01.01.2004 00:00:00.00", "in/landuse/lu_set1.dat", 
+             "01.01.2005 00:00:00.00", sep="\n"), 
+   file = "Catflow-TEST/in/landuse/lu_ts.dat")       
+ 
+ # land-use parameters
+  cat(paste(
+       paste("2", "KST", "MAK", "BFI", "BBG", "TWU", "PFH", 
+             "PALB", "RSTMIN", "WP_BFW", "F_BFW", sep= "   "),
+       "0.    3.     1.    5.    0.95   5.0    5.0     0.15    1.    1.      1.",
+       paste(c("1  ","366"), 
+             "2.     1.     1.     1.0   1.0    1.0     1.0   546.    0.05    30.",
+        sep="    ", collapse="\n"), sep="\n"), 
+   file = "Catflow-TEST/in/landuse/conif.par")
+ 
+ # pointer to surface node attributes
+  cat(paste(1, "33  3    %coniferous forest", sep = "\n"),
+   file = "Catflow-TEST/in/landuse/lu_set1.dat")
+\end{Sinput}
+\end{Schunk}
+
+Now that we have completed the preparation of input files we are ready to run CATFLOW
+on this simple example. First copy \verb+CATFLOW.EXE+ to the \verb+Catflow-TEST+ directory,
+then run the program (to run the program within \proglang{R}, type \code{system("Catflow-TEST/CATFLOW")}).
+
+
+The simulation results are used in part \ref{sec:postproc} to demonstrate the post-processing facilities of the \pkg{Catflow} package.
+
+Do not refrain from tidying up:
+<<tidy1>>=
+detach(test.geom)
+@
+
+ 
+%%jw%% verweis auf inst directory
+
+                     
