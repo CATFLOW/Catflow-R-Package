@@ -12,7 +12,8 @@ write.climate(climadat,
               output.file, 
               start.time = "01.01.2004 00:00:00", 
               time.unit = "h", 
-              rBilart = 1, 
+              filetyp = 1,
+              rBilart = 1,
               ref.height = 8, sw0 = -6, sw1 = 0.7, sw2 = 2.8e-4, 
               trueb = 1.5, truebf = 0.1,
               NA.flag = -999)
@@ -43,8 +44,11 @@ Start date for the simulation ("\%d.\%m.\%Y \%H:\%M:\%S")
   \item{time.unit}{
 Time units of the climate record 
 }
+\item{filetyp}{
+Type of file: ET is computed (1); or ET is measured data (2)
+      }
   \item{rBilart}{
-Climate file type: specifies whether net radiation is computed (1),
+Radiation balance: net radiation is computed (1),
 or measured values are to be used (2)
 }
   \item{ref.height}{

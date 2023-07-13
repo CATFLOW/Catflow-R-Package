@@ -4,6 +4,7 @@ function( climadat,
      start.time = "01.01.2004 00:00:00",  # dd.mm.yyyy hh:mm:ss,
      time.unit = "h",           # d(ay), h(our), m(inute), s(econds)
      
+     filetyp = 1 ,            # compute ET (1), or use measure values (2)
      rBilart = 1 ,            # specifies whether net radiation is computed 
                         # (1), or measured values are to be used (2)
      ref.height = 8 ,           # reference height wind speed measurement 
@@ -28,11 +29,11 @@ function( climadat,
  climadat[is.na(climadat)] <- NA.flag
  
 # header
- zeile1 <- paste(rBilart, 1)
+ zeile1 <- paste(filetyp, rBilart)
   zeile2 <- paste(start.time, ".00", sep = "")
   zeile3 <- paste("# Startzeit     [", time.unit ,"]->[s],",
           " wind height, radiation and dimming factors", sep = "")  
-  if(rBilart ==1) {
+  if(filetyp ==1) {
    zeile4 <- paste(paste("# Time[", time.unit ,"]", sep = "" ), "GlobRad",
          " NetRad", "  Temp", "  RelHum", "  vWind", " dirWind", sep = " " )
    } else { # obs data (time + 3 columns)
@@ -42,7 +43,7 @@ function( climadat,
 
  write(zeile1, output.file)
 
- if(rBilart ==1) {
+ if(filetyp ==1) {
    write(c(zeile2 ,
             sapply(c(faktor.t, ref.height, sw0, sw1, sw2, trueb, truebf),
                    format, nsmall = 1, scientific = -1)),
@@ -58,7 +59,7 @@ function( climadat,
  write( zeile3, output.file, append = T)
  write( zeile4, output.file, append = T)
  
- if(rBilart==1){
+ if(filetyp==1){
  write( t(format(round(climadat, 2), width = c(8,rep(6, 6)), nsmall = 2) ), 
     output.file, ncolumns = 7, sep  = " ", append = T)
  } else { # obs data (time + 3 columns)
