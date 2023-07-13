@@ -1,0 +1,5 @@
+*.Rcheck/*
+OLD/*
+*.gz
+*.r
+*.R
