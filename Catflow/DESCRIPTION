@@ -2,8 +2,8 @@ Encoding: latin1
 Package: Catflow
 Type: Package
 Title: CATFLOW Utilities
-Version: 0.995
-Date: 2021-09-22
+Version: 0.996
+Date: 2023-07-13
 Author: Jan Wienhöfer
 Maintainer: J. Wienhöfer  <j.wienhoefer@gmx.de>
 Depends: R (>= 2.10.0), deSolve, RColorBrewer, splines, zoo, xts
