@@ -44,12 +44,12 @@ function( # # # produces a geometry file for the CATFLOW code
   if(any(xsi>1) | any(xsi<0)) stop("xsi not limited to the interval 0 - 1!")
   eta <- slope.list[["eta"]]
    if(any(eta>1)| any(eta <0)) stop("eta not limited to the interval 0 - 1!")
-  # take default values for missing parameters (looking in slope.list)
+  htyp <- slope.list[["htyp"]]
   
-  attach(slope.list, warn.conflicts = FALSE); on.exit(detach(slope.list))
- 
- 
-  if(!exists("out.file", where = "slope.list")) make.output <- FALSE
+  # check if file name is given, and optionally create directory
+  if(!is.null( slope.list[["out.file"]])){
+   out.file <-  slope.list[["out.file"]]
+  } else make.output <- FALSE
   
   if(make.output) { if(!is.null(project.path)){ out.file <- file.path(project.path, out.file) 
                         if(!file_test("-d", project.path)) dir.create(project.path, recursive = TRUE) } }
@@ -58,424 +58,424 @@ function( # # # produces a geometry file for the CATFLOW code
 #-----------------------------------------------------------------------
 # Definitions of internal functions #
 # --------------------------------
-
-  cspe <- function(
-  # cspe: cubic spline interpolation with endconditions (here: first gradient)
-       xi,        # xi and yi are vectors 
-       yi,         # (x, y coordinate values)
-       valconds ,...){
-   #-------------------------------------
-   # # Generate the cubic spline interpolant as piecewise polynomial. 
-   #  (e.g. Press et al. 92, Numerical Recipes FORTRAN pp.107ff)
-   # returns the cubic spline interpolant (piecewise polynomial) to the given data (xi,yi)
-   # using the specified gradients at the endpoints with values valconds(i) ,
-   # with i = 1 (i = 2) referring to the left (right) endpoint.
-   #
-   # adapted from MATLAB/Octave function 'csape' [Copyright 1987-2003 C. de Boor and 
-   # The MathWorks, Inc. (MATLAB version); Copyright 2000,2001 Kai Habel (Octave version)]
-   #
-   #-------------------------------------
- 
-    stopifnot(is.vector(yi))          # check if y is vector
-    stopifnot(length(xi) == length(yi) )     # checks if lengths match
-  
-    n <- length(yi) 
     
-    if(n>2){
+      cspe <- function(
+      # cspe: cubic spline interpolation with endconditions (here: first gradient)
+           xi,        # xi and yi are vectors 
+           yi,         # (x, y coordinate values)
+           valconds ,...){
+       #-------------------------------------
+       # # Generate the cubic spline interpolant as piecewise polynomial. 
+       #  (e.g. Press et al. 92, Numerical Recipes FORTRAN pp.107ff)
+       # returns the cubic spline interpolant (piecewise polynomial) to the given data (xi,yi)
+       # using the specified gradients at the endpoints with values valconds(i) ,
+       # with i = 1 (i = 2) referring to the left (right) endpoint.
+       #
+       # adapted from MATLAB/Octave function 'csape' [Copyright 1987-2003 C. de Boor and 
+       # The MathWorks, Inc. (MATLAB version); Copyright 2000,2001 Kai Habel (Octave version)]
+       #
+       #-------------------------------------
      
-    # set up the linear system for solving for the slopes at XI.
-    dx <- diff(xi)
-    locgrad <- diff(yi) /dx
-   
-    # construct tridiagonal matrix
-    cc <- matrix(0,n,n)
-    
-     # fill interior diagonals for n*n matrices with n>2
-    dia.val <- 2*c(0, dx[2:(n-1)]+dx[1:(n-2)],0)  # fill diagonal
-     diag(cc) <- dia.val
-    ld.val <- dx[2:(n-1)]              # fill lower
-     cc[cbind(2:(n-1) , 1:(n-2))] <- ld.val     # subdiagonal
-    ud.val <- dx[1:(n-2)]              # fill upper
-     cc[cbind(2:(n-1), 3:n)] <- ud.val       # subdiagonal
-     
-    cc[1,1] <- cc[n,n] <- 1 
-    
-    b <- rep(0, n)
-    b[2:(n-1)] <- 3*(dx[2:(n-1)]*locgrad[1:(n-2)] + dx[1:(n-2)]*locgrad[2:(n-1)])
-   
-    # check for given endconditions
-     # check if valconds are given, otherwise set to zero
-     if (missing(valconds)){  
-       # if endslope was not supplied, get it by local interpolation
-        b[1] <- locgrad[1]
-        b[n] <- locgrad[n-1]
-       
-        ddf <- (locgrad[2]-locgrad[1])/(xi[3]-xi[1]);
-        b[1] <- b[1]-ddf*dx[1]
-        ddfn <- (locgrad[n-1]-locgrad[n-2])/(xi[n]-xi[n-2]);
-        b[n] <- b[n]+ ddfn*dx[n-1]
-         
-       if (n>3){
-        ddf2 <- (locgrad[3]-locgrad[2])/(xi[4]-xi[2]);
-         b[1] <- b[1]+(ddf2-ddf)*(dx[1]*(xi[3]-xi[1]))/(xi[4]-xi[1])
-        ddf2n <- (locgrad[n-2]-locgrad[n-3])/(xi[n-1]-xi[n-3])
-         b[n] <- b[n] + (ddfn-ddf2n)*(dx[n-1]*(xi[n]-xi[n-2])) /(xi[n]-xi[n-3])
-           }
-    } else  
-    # or use given values for first derivative
-    { b[1] <- valconds[1]
-     b[n] <- valconds[2] } 
-       
-    ### solve for the slopes 
-    sl <- solve(cc,b)
-       
-    # convert to ppform
-    c4 <- (sl[1:(n-1)]+sl[2:n]-2*locgrad[1:(n-1)]) /dx
-    c3 <- (locgrad[1:(n-1)]-sl[1:(n-1)]) /dx - c4
-  
-     pp.breaks <- xi
-     pp.coefs <- cbind(yi, sl, c(c3,0), c(c4/dx, 0) )
-                    # add 0 for linear extrapolation
-    
-    # if(n == 2): linear relationship
-    } else { pp.breaks <- seq(xi[1],xi[2],length = 5)   
+        stopifnot(is.vector(yi))          # check if y is vector
+        stopifnot(length(xi) == length(yi) )     # checks if lengths match
+      
+        n <- length(yi) 
         
-         lin <- lm(yi ~xi) 
-         y <- predict(lin,newdata = data.frame(xi = pp.breaks))   # constant
-          if(missing(valconds)){ b <- rep(coef(lin)[2], 5)   # linear - fitted
-         } else         b <- approx(valconds, n = 5)$y  #    - specified
-        pp.coefs <- cbind(y,b,0,0)
-     }
-    
-    # Factors are: y constant, b linear, c quadratic, d cubic  
-    colnames(pp.coefs) <- c("y","b","c","d")
-     rownames(pp.coefs) <- as.character(pp.breaks)
-    
-    # make spline object with breaks and coefficients
-    value <- list(knots = pp.breaks, coefficients = pp.coefs)
-    class(value) <- c("npolySpline","polySpline", "spline")
-   return( value ) } 
-
-  #-------------------------------------------------------------------------------
-   gradient <- function(f, h){
-   # gradient: numerical gradient (difference quotient) of input vector f at locations h
-   # for matrices: use apply and the respective dimension
-    n <- length(h)          # n is length in the dimension considered
-     if (n < 2) stop(paste("Function 'gradient': n = ",n, "is not enough.") )
-     if (length(f)!= n) stop(paste("Function 'gradient': vectors have different lengths!") )
-    
-    i1 <- 1:2 ; i2 <- (n-1):n    # indices
-    # forward differences on left and right edges, central differences where available
-    diff.quot <- c( diff(f[i1]) / diff(h[i1]),     
-            (f[-i1] - f[-i2]) / (h[-i1] - h[-i2]),
-             diff(f[i2]) / diff(h[i2]) )
-    return(diff.quot)}   
-
-  #-------------------------------------------------------------------------------
-   mkpp <- function(x,y, make.poly = FALSE){
-  #  mkpp: make piecewise polynomial        
-             # make.poly = T: generate spline object with intercept and zero slope
-    if(!is.matrix(y))  y <- matrix( y, ncol = length(y))
-     if(is.null(dimnames(y))) dimnames(y) <- list(NULL, c("y","b","c","d")[1:ncol(y)])
-    
-     if(make.poly){
-      if(length(x) < (2*ncol(y)+1) ){ ### sufficient number of knots
-       x <- unique(sort(c( seq(min(x),max(x), length = (2*ncol(y)+1) ), x) ))  
-       }                 
-       if (nrow(y)< length(x)){     ### one row per knot
-        y <- matrix( rep(y, length(x)), byrow = TRUE, nrow = length(x ))
-        }
-      res <- list(knots = x, coefficients = y)
-      class(res) <- c("npolySpline", "polySpline", "spline")   # 
-     
-     } else res <- list(knots = x, coefficients = y)
-  
-    return(res) }
-
-  #-------------------------------------------------------------------------------
-  #  misc. functions for generating geometry
-  ### 
-    xa <- function (tau, typ = htyp,...){
-        if (typ == 1 | typ == 3 ) { xa <- tau*(max_xa-min_xa)+min_xa
-        } else if (typ == 2) xa <- tau
-     return(xa)}
-    
-    xb <- function(et,typ = htyp,...){
-        m <- length(et)
-        if (typ == 1){
-         xb <- et*(max_xb-min_xb) + min_xb
-        } else if (typ == 2 | typ == 3 ) xb <- rep(max_xb, m)
-     return(xb)}
-      
-    xc <- function (tau,...) tau*(max_xc-min_xc)+min_xc   # used in dycdt
+        if(n>2){
+         
+        # set up the linear system for solving for the slopes at XI.
+        dx <- diff(xi)
+        locgrad <- diff(yi) /dx
        
-    xd <- function(et, typ = htyp,... ){
-    # cf. xb(), but here minimum is considered for typ == 2
-        m <- length(et)
-        if (typ == 1){ xd <- et*(max_xd-min_xd)+min_xd
-        } else if (typ == 2 | typ == 3 ) xd <- rep(min_xd,m)
-     return(xd)}
-    
-    ya <- function(tau, typ = htyp,... ){
-        m <- length(tau)
-        if (typ == 1 | typ == 3 ){  ya <- predict (ppya, xa(tau))$y 
-        } else if(typ == 2) ya <- rep(min(pyd),m)
-     return(ya)}
-   
-    yb <- function (et, typ = htyp,... ){
-        m <- length(et)
-        if (typ == 1){  yb <- predict (ppyb, xb(et))$y      
-        } else if(typ == 2 | typ == 3 ) yb <- et*(diff(range(pyb))) + min(pyb)
-     return(yb)}
-    
-    yc <- function(tau, ... ) predict(ppyc, xc(tau))$y  
-   
-    yd <- function(et, typ = htyp,... ){
-         if (typ == 1){  yd <- predict(ppyd, xd(et))$y     
-         } else if (typ == 2 | typ == 3 ) yd <- et*(max(pyd)-min(pyd))+min(pyd)
-     return(yd)}
-  
-  #-------------------------------------------------------------------------------
-  # functions for case differentiation
-     
-   dxde <- function (et, max.x,min.x, typ = htyp,...){
-   ## derivatives at sides B and D: dxbde.m (max_xb, min_xb) and dxdde.m (max_xd, min_xd)
-       m <- length(et)
-       if (typ == 1) xb <- rep(1, m)*(max.x-min.x) else
-        if (typ == 2 | typ == 3 ) xb <- rep(0,m)
-    return(xb) }
-    
-   dxbde <- function(et,...) dxde(et, max_xb, min_xb,typ = htyp)
-   dxdde <- function(et,...) dxde(et, max_xd, min_xd,typ = htyp)
-   
-   dybde <- function (et , typ = htyp,...){ 
-   # at side B: first derivative of ppyb
-      m <- length(et)
-      if (typ == 1){                   
-       yb <- predict (ppyb, xb(et, typ), deriv = 1)$y   ## gradient at location xb(et)
-       yb <- yb * dxbde(et, typ)               
-      } else if (typ == 2 | typ == 3 ) yb = rep(1, m)  # ppyb defined in vertical direction!
-    return(yb)}                   
-     
-   dydde <- function (et, typ = htyp,... ){
-   # at side D: first derivative of ppyd
-      m <- length(et)
-      if (typ == 1){
-       yd <- predict(ppyd, xd(et, typ), deriv = 1)$y     
-        yd <- yd * dxdde(et, typ)
-      } else if (typ == 2 | typ == 3 ) yd <- rep(1, m)
-    return(yd)}
-   
-   dxadt <- function (tau, typ = htyp,...){ 
-   # lower left corner of side A
-      m <- length(tau)
-      xa <- rep(1,m)
-       if (typ == 1 | typ == 3 ) xa <- xa * (max_xa-min_xa)     
-    return(xa)}
+        # construct tridiagonal matrix
+        cc <- matrix(0,n,n)
+        
+         # fill interior diagonals for n*n matrices with n>2
+        dia.val <- 2*c(0, dx[2:(n-1)]+dx[1:(n-2)],0)  # fill diagonal
+         diag(cc) <- dia.val
+        ld.val <- dx[2:(n-1)]              # fill lower
+         cc[cbind(2:(n-1) , 1:(n-2))] <- ld.val     # subdiagonal
+        ud.val <- dx[1:(n-2)]              # fill upper
+         cc[cbind(2:(n-1), 3:n)] <- ud.val       # subdiagonal
+         
+        cc[1,1] <- cc[n,n] <- 1 
+        
+        b <- rep(0, n)
+        b[2:(n-1)] <- 3*(dx[2:(n-1)]*locgrad[1:(n-2)] + dx[1:(n-2)]*locgrad[2:(n-1)])
        
-   dxcdt <- function(tau,...) {
-      m <- length(tau)
-      xc <- rep(1,m) *(max_xc-min_xc)        
-    return(xc)}
-     
-   dycdt <- function(tau,...){
-   # first derivative of ppyc at location xc(tau)
-      yc <- predict (ppyc, xc(tau), deriv = 1)$y   
-       yc <- yc * dxcdt(tau)
-    return(yc)}
-   
-   dyadt <- function(tau,typ = htyp,...){
-        m <- length(tau)
-        if (typ == 1 | typ == 3 ){
-         ya <- predict (ppya, xa(tau, typ), deriv = 1)$y      
-         ya <- ya * dxadt(tau, typ) 
-        } else if(typ == 2) ya <- rep(0,m)
-    return(ya)}
-    
-   dyb2de2 <- function(et,typ = htyp,...){     
-   # at side B: second derivative of ppyb                
-       m <- length(et)
-       if (typ == 1){
-        yb <-  predict (ppyb, xb(et, typ), deriv = 2)$y   
-         yb <- yb* dxbde(et, typ)             
-       } else if (typ == 2 | typ == 3 ) yb <- rep(0, m) # zero slope (vertical)
-    return(yb)}             
-      
-   dyd2de2 <- function(et,typ = htyp,...){
-   # at side D: second derivative of ppyd
-       m <- length(et)
-       if (typ == 1){
-        yd <- predict (ppyd, xd(et, typ), deriv = 2)$y  
-         yd <- yd * dxdde(et, typ)        
-       } else if (typ == 2 | typ == 3 ) yd <- rep(0, m)
-    return(yd)}
-  
-  #-------------------------------------------------------------------------------
-   koor_dbm <- function(eta, tau, tau_anz = 1.5* xsi_anz, ...){
-   # koor_dbm. calculates coordinate values
-   
-    if(missing(tau)) tau <- seq(xsi_1, xsi_n , length = tau_anz )
-    
-    eta_anz <- length(eta)    ### length of (local) eta
+        # check for given endconditions
+         # check if valconds are given, otherwise set to zero
+         if (missing(valconds)){  
+           # if endslope was not supplied, get it by local interpolation
+            b[1] <- locgrad[1]
+            b[n] <- locgrad[n-1]
            
-    # Vorfaktoren zur Berechnung von hd und hd und hdb
-    f_xsi_n = (xsi_n - tau) / (xsi_n - xsi_1)
-    f_xsi_1 = (tau - xsi_1) / (xsi_n - xsi_1)
-    f_eta_m = (eta_m - eta) / (eta_m - eta_1)
-    f_eta_1 = (eta - eta_1) / (eta_m - eta_1)
-  
-    #--------------------------------------------
-    # Berechnung der Vektoren hd(eta) und hb(eta)
-    hb_x <- (xd(eta)-xb(eta)) +
-        f_eta_m * ( diff(xa(range(xsi))) - 
-              (xsi_n-xsi_1)* ( dxadt(xsi_n) - lam_ab * dybde(eta) )) +
-        f_eta_1 * ( diff(xc(range(xsi))) -
-             (xsi_n-xsi_1)*(dxcdt(xsi_n) - lam_bc*dybde(eta)))
+            ddf <- (locgrad[2]-locgrad[1])/(xi[3]-xi[1]);
+            b[1] <- b[1]-ddf*dx[1]
+            ddfn <- (locgrad[n-1]-locgrad[n-2])/(xi[n]-xi[n-2]);
+            b[n] <- b[n]+ ddfn*dx[n-1]
+             
+           if (n>3){
+            ddf2 <- (locgrad[3]-locgrad[2])/(xi[4]-xi[2]);
+             b[1] <- b[1]+(ddf2-ddf)*(dx[1]*(xi[3]-xi[1]))/(xi[4]-xi[1])
+            ddf2n <- (locgrad[n-2]-locgrad[n-3])/(xi[n-1]-xi[n-3])
+             b[n] <- b[n] + (ddfn-ddf2n)*(dx[n-1]*(xi[n]-xi[n-2])) /(xi[n]-xi[n-3])
+               }
+        } else  
+        # or use given values for first derivative
+        { b[1] <- valconds[1]
+         b[n] <- valconds[2] } 
+           
+        ### solve for the slopes 
+        sl <- solve(cc,b)
+           
+        # convert to ppform
+        c4 <- (sl[1:(n-1)]+sl[2:n]-2*locgrad[1:(n-1)]) /dx
+        c3 <- (locgrad[1:(n-1)]-sl[1:(n-1)]) /dx - c4
+      
+         pp.breaks <- xi
+         pp.coefs <- cbind(yi, sl, c(c3,0), c(c4/dx, 0) )
+                        # add 0 for linear extrapolation
+        
+        # if(n == 2): linear relationship
+        } else { pp.breaks <- seq(xi[1],xi[2],length = 5)   
+            
+             lin <- lm(yi ~xi) 
+             y <- predict(lin,newdata = data.frame(xi = pp.breaks))   # constant
+              if(missing(valconds)){ b <- rep(coef(lin)[2], 5)   # linear - fitted
+             } else         b <- approx(valconds, n = 5)$y  #    - specified
+            pp.coefs <- cbind(y,b,0,0)
+         }
+        
+        # Factors are: y constant, b linear, c quadratic, d cubic  
+        colnames(pp.coefs) <- c("y","b","c","d")
+         rownames(pp.coefs) <- as.character(pp.breaks)
+        
+        # make spline object with breaks and coefficients
+        value <- list(knots = pp.breaks, coefficients = pp.coefs)
+        class(value) <- c("npolySpline","polySpline", "spline")
+       return( value ) } 
     
-    hd_x <- (xd(eta)-xb(eta)) +
-        f_eta_m * ( diff(xa(range(xsi))) - 
-              (xsi_n-xsi_1)* ( dxadt(xsi_1) - lam_da*dydde(eta) ) ) +
-        f_eta_1 * ( diff(xc(range(xsi))) -
-              (xsi_n-xsi_1) *( dxcdt(xsi_1) - lam_cd*dydde(eta) ) )
+      #-------------------------------------------------------------------------------
+       gradient <- function(f, h){
+       # gradient: numerical gradient (difference quotient) of input vector f at locations h
+       # for matrices: use apply and the respective dimension
+        n <- length(h)          # n is length in the dimension considered
+         if (n < 2) stop(paste("Function 'gradient': n = ",n, "is not enough.") )
+         if (length(f)!= n) stop(paste("Function 'gradient': vectors have different lengths!") )
+        
+        i1 <- 1:2 ; i2 <- (n-1):n    # indices
+        # forward differences on left and right edges, central differences where available
+        diff.quot <- c( diff(f[i1]) / diff(h[i1]),     
+                (f[-i1] - f[-i2]) / (h[-i1] - h[-i2]),
+                 diff(f[i2]) / diff(h[i2]) )
+        return(diff.quot)}   
     
-    hb_y <- (yd(eta)-yb(eta)) +
-        f_eta_m * ( diff(ya(range(xsi))) -
-             (xsi_n-xsi_1)* (dyadt(xsi_n) + lam_ab*dxbde(eta)) ) +
-        f_eta_1 * ( diff(yc(range(xsi))) -
-             (xsi_n-xsi_1)*(dycdt(xsi_n) + lam_bc*dxbde(eta)) )
+      #-------------------------------------------------------------------------------
+       mkpp <- function(x,y, make.poly = FALSE){
+      #  mkpp: make piecewise polynomial        
+                 # make.poly = T: generate spline object with intercept and zero slope
+        if(!is.matrix(y))  y <- matrix( y, ncol = length(y))
+         if(is.null(dimnames(y))) dimnames(y) <- list(NULL, c("y","b","c","d")[1:ncol(y)])
+        
+         if(make.poly){
+          if(length(x) < (2*ncol(y)+1) ){ ### sufficient number of knots
+           x <- unique(sort(c( seq(min(x),max(x), length = (2*ncol(y)+1) ), x) ))  
+           }                 
+           if (nrow(y)< length(x)){     ### one row per knot
+            y <- matrix( rep(y, length(x)), byrow = TRUE, nrow = length(x ))
+            }
+          res <- list(knots = x, coefficients = y)
+          class(res) <- c("npolySpline", "polySpline", "spline")   # 
+         
+         } else res <- list(knots = x, coefficients = y)
+      
+        return(res) }
     
-    hd_y <- (yd(eta)-yb(eta)) +
-        f_eta_m * ( diff(ya(range(xsi))) -
-             (xsi_n-xsi_1)*(dyadt(xsi_1) + lam_da*dxdde(eta)) ) +
-        f_eta_1 * ( diff(yc(range(xsi))) -
-             (xsi_n-xsi_1)*(dycdt(xsi_1) + lam_cd*dxdde(eta)) )
+      #-------------------------------------------------------------------------------
+      #  misc. functions for generating geometry
+      ### 
+        xa <- function (tau, typ = htyp,...){
+            if (typ == 1 | typ == 3 ) { xa <- tau*(max_xa-min_xa)+min_xa
+            } else if (typ == 2) xa <- tau
+         return(xa)}
+        
+        xb <- function(et,typ = htyp,...){
+            m <- length(et)
+            if (typ == 1){
+             xb <- et*(max_xb-min_xb) + min_xb
+            } else if (typ == 2 | typ == 3 ) xb <- rep(max_xb, m)
+         return(xb)}
+          
+        xc <- function (tau,...) tau*(max_xc-min_xc)+min_xc   # used in dycdt
+           
+        xd <- function(et, typ = htyp,... ){
+        # cf. xb(), but here minimum is considered for typ == 2
+            m <- length(et)
+            if (typ == 1){ xd <- et*(max_xd-min_xd)+min_xd
+            } else if (typ == 2 | typ == 3 ) xd <- rep(min_xd,m)
+         return(xd)}
+        
+        ya <- function(tau, typ = htyp,... ){
+            m <- length(tau)
+            if (typ == 1 | typ == 3 ){  ya <- predict (ppya, xa(tau))$y 
+            } else if(typ == 2) ya <- rep(min(pyd),m)
+         return(ya)}
+       
+        yb <- function (et, typ = htyp,... ){
+            m <- length(et)
+            if (typ == 1){  yb <- predict (ppyb, xb(et))$y      
+            } else if(typ == 2 | typ == 3 ) yb <- et*(diff(range(pyb))) + min(pyb)
+         return(yb)}
+        
+        yc <- function(tau, ... ) predict(ppyc, xc(tau))$y  
+       
+        yd <- function(et, typ = htyp,... ){
+             if (typ == 1){  yd <- predict(ppyd, xd(et))$y     
+             } else if (typ == 2 | typ == 3 ) yd <- et*(max(pyd)-min(pyd))+min(pyd)
+         return(yd)}
+      
+      #-------------------------------------------------------------------------------
+      # functions for case differentiation
+         
+       dxde <- function (et, max.x,min.x, typ = htyp,...){
+       ## derivatives at sides B and D: dxbde.m (max_xb, min_xb) and dxdde.m (max_xd, min_xd)
+           m <- length(et)
+           if (typ == 1) xb <- rep(1, m)*(max.x-min.x) else
+            if (typ == 2 | typ == 3 ) xb <- rep(0,m)
+        return(xb) }
+        
+       dxbde <- function(et,...) dxde(et, max_xb, min_xb,typ = htyp)
+       dxdde <- function(et,...) dxde(et, max_xd, min_xd,typ = htyp)
+       
+       dybde <- function (et , typ = htyp,...){ 
+       # at side B: first derivative of ppyb
+          m <- length(et)
+          if (typ == 1){                   
+           yb <- predict (ppyb, xb(et, typ), deriv = 1)$y   ## gradient at location xb(et)
+           yb <- yb * dxbde(et, typ)               
+          } else if (typ == 2 | typ == 3 ) yb = rep(1, m)  # ppyb defined in vertical direction!
+        return(yb)}                   
+         
+       dydde <- function (et, typ = htyp,... ){
+       # at side D: first derivative of ppyd
+          m <- length(et)
+          if (typ == 1){
+           yd <- predict(ppyd, xd(et, typ), deriv = 1)$y     
+            yd <- yd * dxdde(et, typ)
+          } else if (typ == 2 | typ == 3 ) yd <- rep(1, m)
+        return(yd)}
+       
+       dxadt <- function (tau, typ = htyp,...){ 
+       # lower left corner of side A
+          m <- length(tau)
+          xa <- rep(1,m)
+           if (typ == 1 | typ == 3 ) xa <- xa * (max_xa-min_xa)     
+        return(xa)}
+           
+       dxcdt <- function(tau,...) {
+          m <- length(tau)
+          xc <- rep(1,m) *(max_xc-min_xc)        
+        return(xc)}
+         
+       dycdt <- function(tau,...){
+       # first derivative of ppyc at location xc(tau)
+          yc <- predict (ppyc, xc(tau), deriv = 1)$y   
+           yc <- yc * dxcdt(tau)
+        return(yc)}
+       
+       dyadt <- function(tau,typ = htyp,...){
+            m <- length(tau)
+            if (typ == 1 | typ == 3 ){
+             ya <- predict (ppya, xa(tau, typ), deriv = 1)$y      
+             ya <- ya * dxadt(tau, typ) 
+            } else if(typ == 2) ya <- rep(0,m)
+        return(ya)}
+        
+       dyb2de2 <- function(et,typ = htyp,...){     
+       # at side B: second derivative of ppyb                
+           m <- length(et)
+           if (typ == 1){
+            yb <-  predict (ppyb, xb(et, typ), deriv = 2)$y   
+             yb <- yb* dxbde(et, typ)             
+           } else if (typ == 2 | typ == 3 ) yb <- rep(0, m) # zero slope (vertical)
+        return(yb)}             
+          
+       dyd2de2 <- function(et,typ = htyp,...){
+       # at side D: second derivative of ppyd
+           m <- length(et)
+           if (typ == 1){
+            yd <- predict (ppyd, xd(et, typ), deriv = 2)$y  
+             yd <- yd * dxdde(et, typ)        
+           } else if (typ == 2 | typ == 3 ) yd <- rep(0, m)
+        return(yd)}
+      
+      #-------------------------------------------------------------------------------
+       koor_dbm <- function(eta, tau, tau_anz = 1.5* xsi_anz, ...){
+       # koor_dbm. calculates coordinate values
+       
+        if(missing(tau)) tau <- seq(xsi_1, xsi_n , length = tau_anz )
+        
+        eta_anz <- length(eta)    ### length of (local) eta
+               
+        # Vorfaktoren zur Berechnung von hd und hd und hdb
+        f_xsi_n = (xsi_n - tau) / (xsi_n - xsi_1)
+        f_xsi_1 = (tau - xsi_1) / (xsi_n - xsi_1)
+        f_eta_m = (eta_m - eta) / (eta_m - eta_1)
+        f_eta_1 = (eta - eta_1) / (eta_m - eta_1)
+      
+        #--------------------------------------------
+        # Berechnung der Vektoren hd(eta) und hb(eta)
+        hb_x <- (xd(eta)-xb(eta)) +
+            f_eta_m * ( diff(xa(range(xsi))) - 
+                  (xsi_n-xsi_1)* ( dxadt(xsi_n) - lam_ab * dybde(eta) )) +
+            f_eta_1 * ( diff(xc(range(xsi))) -
+                 (xsi_n-xsi_1)*(dxcdt(xsi_n) - lam_bc*dybde(eta)))
+        
+        hd_x <- (xd(eta)-xb(eta)) +
+            f_eta_m * ( diff(xa(range(xsi))) - 
+                  (xsi_n-xsi_1)* ( dxadt(xsi_1) - lam_da*dydde(eta) ) ) +
+            f_eta_1 * ( diff(xc(range(xsi))) -
+                  (xsi_n-xsi_1) *( dxcdt(xsi_1) - lam_cd*dydde(eta) ) )
+        
+        hb_y <- (yd(eta)-yb(eta)) +
+            f_eta_m * ( diff(ya(range(xsi))) -
+                 (xsi_n-xsi_1)* (dyadt(xsi_n) + lam_ab*dxbde(eta)) ) +
+            f_eta_1 * ( diff(yc(range(xsi))) -
+                 (xsi_n-xsi_1)*(dycdt(xsi_n) + lam_bc*dxbde(eta)) )
+        
+        hd_y <- (yd(eta)-yb(eta)) +
+            f_eta_m * ( diff(ya(range(xsi))) -
+                 (xsi_n-xsi_1)*(dyadt(xsi_1) + lam_da*dxdde(eta)) ) +
+            f_eta_1 * ( diff(yc(range(xsi))) -
+                 (xsi_n-xsi_1)*(dycdt(xsi_1) + lam_cd*dxdde(eta)) )
+        
+        #-----------------------------
+        # Berechnung von h_db(tau,eta)     
+        hdb_x <- f_xsi_n %o% xd(eta) + f_xsi_1 %o% xb(eta) +
+            (xa(tau) - f_xsi_n*xa(xsi_1) - f_xsi_1*xa(xsi_n)) %o% f_eta_m +
+            (xc(tau) - f_xsi_n*xc(xsi_1) - f_xsi_1*xc(xsi_n)) %o% f_eta_1
+        hdb_y <- f_xsi_n %o% yd(eta) + f_xsi_1 %o% yb(eta) +
+            (ya(tau) - f_xsi_n * ya(xsi_1) - f_xsi_1*ya(xsi_n)) %o% f_eta_m +
+            (yc(tau) - f_xsi_n * yc(xsi_1) - f_xsi_1*yc(xsi_n)) %o% f_eta_1
+        
+        #-------------------------
+        # Berechnung der eta-Linien
+                            
+        x_db <- hdb_x + (f_xsi_1*(f_xsi_n^2)) %o% hd_x -
+                 (f_xsi_n*(f_xsi_1^2)) %o% hb_x
+        
+        y_db <- hdb_y + (f_xsi_1*(f_xsi_n^2)) %o% hd_y -
+                (f_xsi_n*(f_xsi_1^2)) %o% hb_y
+        
+        dhb_x_de <- (dxdde(eta)-dxbde(eta)) +
+             f_eta_m * ( -(xsi_n-xsi_1)*(-lam_ab*dyb2de2(eta))) -
+             ( (xa(xsi_n)-xa(xsi_1)) - (xsi_n-xsi_1)*(dxadt(xsi_n) -
+              lam_ab*dybde(eta))) +
+             f_eta_1 * ( -(xsi_n-xsi_1)*(-lam_bc*dyb2de2(eta))) +
+             ( (xc(xsi_n)-xc(xsi_1)) - (xsi_n-xsi_1)*(dxcdt(xsi_n) - lam_bc*dybde(eta)))
+         
+        dhd_x_de <- (dxdde(eta)-dxbde(eta)) +
+             f_eta_m * ( -(xsi_n-xsi_1)*(-lam_da*dyd2de2(eta))) -
+             ( (xa(xsi_n)-xa(xsi_1)) - (xsi_n-xsi_1)*(dxadt(xsi_1) - 
+              lam_da*dydde(eta))) +
+             f_eta_1 * ( -(xsi_n-xsi_1)*(-lam_cd*dyd2de2(eta))) +
+             ( (xc(xsi_n)-xc(xsi_1)) - (xsi_n-xsi_1)*(dxcdt(xsi_1) - lam_cd*dydde(eta)))
+         
+        dhb_y_de <- (dydde(eta)-dybde(eta)) +
+             f_eta_m * ( -(xsi_n-xsi_1)*( lam_ab*0 * eta)) -
+             ( (ya(xsi_n)-ya(xsi_1)) - (xsi_n-xsi_1)*(dyadt(xsi_n) +
+              lam_ab*dxbde(eta))) +
+             f_eta_1 * ( -(xsi_n-xsi_1)*( lam_bc* 0 *eta)) +
+             ( (yc(xsi_n)-yc(xsi_1)) - (xsi_n-xsi_1)*(dycdt(xsi_n) + lam_bc*dxbde(eta)))
+         
+        dhd_y_de <- (dydde(eta)-dybde(eta)) +
+            f_eta_m * ( -(xsi_n-xsi_1)*( lam_da*0*eta)) -
+            ( (ya(xsi_n)-ya(xsi_1)) - (xsi_n-xsi_1)*(dyadt(xsi_1) + 
+              lam_da*dxdde(eta))) +
+            f_eta_1 * ( -(xsi_n-xsi_1)*( lam_cd*0*(eta))) +
+            ( (yc(xsi_n)-yc(xsi_1)) - (xsi_n-xsi_1)*(dycdt(xsi_1) + lam_cd*dxdde(eta)))
+        
+        dhdb_xdt <- rep(1,length(tau)) %o% (-xd(eta) + xb(eta)) +
+              (dxadt(tau) + xa(xsi_1) - xa(xsi_n)) %o% f_eta_m +
+              (dxcdt(tau) + xc(xsi_1) - xc(xsi_n)) %o% f_eta_1
+        
+        dhdb_ydt <- rep(1,length(tau)) %o% (-yd(eta) + yb(eta)) +
+              (dyadt(tau) + ya(xsi_1) - ya(xsi_n)) %o% f_eta_m +
+              (dycdt(tau) + yc(xsi_1) - yc(xsi_n)) %o% f_eta_1
+        
+        dhdb_xde <- f_xsi_n %o% dxdde(eta) + f_xsi_1 %o% dxbde(eta) -
+              (xa(tau) - f_xsi_n*xa(xsi_1) - 
+               f_xsi_1*xa(xsi_n)) %o% rep(1, eta_anz) +
+              (xc(tau) - f_xsi_n*xc(xsi_1) - f_xsi_1*xc(xsi_n)) %o% rep(1, eta_anz)
+        
+        dhdb_yde = f_xsi_n %o% dydde(eta) + f_xsi_1 %o% dybde(eta) -
+              (ya(tau) - f_xsi_n*ya(xsi_1) - 
+               f_xsi_1*ya(xsi_n)) %o% rep(1, eta_anz) +
+              (yc(tau) - f_xsi_n*yc(xsi_1) - f_xsi_1*yc(xsi_n)) %o% rep(1, eta_anz) 
+        
+        dx_db_dt <- dhdb_xdt + (f_xsi_n^2 - 2*f_xsi_1*f_xsi_n) %o% hd_x -
+                    (f_xsi_1^2 - 2*f_xsi_1*f_xsi_n) %o% hb_x
+        
+        dy_db_dt <- dhdb_ydt + (f_xsi_n^2 - 2*f_xsi_1*f_xsi_n) %o% hd_y -
+                    (f_xsi_1^2 - 2*f_xsi_1*f_xsi_n) %o% hb_y
+        
+        dx_db_de <- dhdb_xde + (f_xsi_1*(f_xsi_n^2)) %o% dhd_x_de -
+                    (f_xsi_n*(f_xsi_1^2)) %o% dhb_x_de
+        
+        dy_db_de <- dhdb_yde + (f_xsi_1*(f_xsi_n^2)) %o% dhd_y_de -
+                    (f_xsi_n*(f_xsi_1^2)) %o% dhb_y_de
+      
+        res <- list(x_db, y_db, dx_db_dt, dx_db_de, dy_db_dt, dy_db_de)
+         names(res) <- c("x_db", "y_db", "dx_db_dt", "dx_db_de", "dy_db_dt", "dy_db_de")
+       return(res)
+       } 
     
-    #-----------------------------
-    # Berechnung von h_db(tau,eta)     
-    hdb_x <- f_xsi_n %o% xd(eta) + f_xsi_1 %o% xb(eta) +
-        (xa(tau) - f_xsi_n*xa(xsi_1) - f_xsi_1*xa(xsi_n)) %o% f_eta_m +
-        (xc(tau) - f_xsi_n*xc(xsi_1) - f_xsi_1*xc(xsi_n)) %o% f_eta_1
-    hdb_y <- f_xsi_n %o% yd(eta) + f_xsi_1 %o% yb(eta) +
-        (ya(tau) - f_xsi_n * ya(xsi_1) - f_xsi_1*ya(xsi_n)) %o% f_eta_m +
-        (yc(tau) - f_xsi_n * yc(xsi_1) - f_xsi_1*yc(xsi_n)) %o% f_eta_1
-    
-    #-------------------------
-    # Berechnung der eta-Linien
-                        
-    x_db <- hdb_x + (f_xsi_1*(f_xsi_n^2)) %o% hd_x -
-             (f_xsi_n*(f_xsi_1^2)) %o% hb_x
-    
-    y_db <- hdb_y + (f_xsi_1*(f_xsi_n^2)) %o% hd_y -
-            (f_xsi_n*(f_xsi_1^2)) %o% hb_y
-    
-    dhb_x_de <- (dxdde(eta)-dxbde(eta)) +
-         f_eta_m * ( -(xsi_n-xsi_1)*(-lam_ab*dyb2de2(eta))) -
-         ( (xa(xsi_n)-xa(xsi_1)) - (xsi_n-xsi_1)*(dxadt(xsi_n) -
-          lam_ab*dybde(eta))) +
-         f_eta_1 * ( -(xsi_n-xsi_1)*(-lam_bc*dyb2de2(eta))) +
-         ( (xc(xsi_n)-xc(xsi_1)) - (xsi_n-xsi_1)*(dxcdt(xsi_n) - lam_bc*dybde(eta)))
+      #---------------------------------------------------------------------------
+       drhodeta <- function (tt ,y ,...){
+       #  derivatives with respect to eta for ivp
+          coords <- koor_dbm(eta = tt, tau = y, ...)  
+          rhodot <-  with(coords, 
+              -(dx_db_dt * dx_db_de + dy_db_dt * dy_db_de) / (dx_db_dt^2 + dy_db_dt^2)
+             )
+       return( list(as.vector(rhodot)) )  
+       }
      
-    dhd_x_de <- (dxdde(eta)-dxbde(eta)) +
-         f_eta_m * ( -(xsi_n-xsi_1)*(-lam_da*dyd2de2(eta))) -
-         ( (xa(xsi_n)-xa(xsi_1)) - (xsi_n-xsi_1)*(dxadt(xsi_1) - 
-          lam_da*dydde(eta))) +
-         f_eta_1 * ( -(xsi_n-xsi_1)*(-lam_cd*dyd2de2(eta))) +
-         ( (xc(xsi_n)-xc(xsi_1)) - (xsi_n-xsi_1)*(dxcdt(xsi_1) - lam_cd*dydde(eta)))
+      #-------------------------------------------------------------------------------   
+       write.geofile <- function( outfile, w_fix = 0 , ...){  
+       #  write CATFLOW geometry file
+         fid <- file(outfile, open = "w")
+         # three header lines
+         write(sprintf("%6i %6i %7.4f %5i (%3i Punkte)" ,eta_anz, xsi_anz, w_fix, 
+                numh, punkteh), fid)
+         write( sprintf('%12.2f %12.2f %8.2f' ,re_bez, ho_bez, z_bez), fid)
+         write( sprintf('%12.2f %10.4f %10.4f' ,tot.area, breite, laenge), fid)
+         # column with eta values
+         write( sprintf('%10.8f', eta), fid)
+         # four columns with xsi, real-world coords of slope, slope width
+         write( sprintf('%10.8f %12.4f %12.4f %12.4f' ,xsi, re, ho, varbr) ,fid)
+         # seven columns with y, x, fe, fx, angle of xsi, angle anisotropy, 1
+         write( sprintf('%10.4f %10.4f %14.8f %14.8f %12.8f %8.4f %i', 
+                 as.vector(y), 
+                  as.vector(x),
+                   as.vector(t(sqrt(g_eta))), 
+                    as.vector(t(sqrt(g_xsi))),
+                     as.vector(t(ws)), 
+                      as.vector(t(wh)), 
+                       1) ,fid)
+         close(fid)
+        return(invisible(NULL)) }
+    
+    #-------------------------------------------------------------------------------
+    
+      plofun <- function(plottitle = "Model geometry (zoom enabled)", ...) {
+      # plotting function 
+           matplot(x,y, t = "l", pch = "", main = plottitle, ...)
+           matlines(t(x),t(y), type = "l", pch = "",...)
+           return(invisible())}
      
-    dhb_y_de <- (dydde(eta)-dybde(eta)) +
-         f_eta_m * ( -(xsi_n-xsi_1)*( lam_ab*0 * eta)) -
-         ( (ya(xsi_n)-ya(xsi_1)) - (xsi_n-xsi_1)*(dyadt(xsi_n) +
-          lam_ab*dxbde(eta))) +
-         f_eta_1 * ( -(xsi_n-xsi_1)*( lam_bc* 0 *eta)) +
-         ( (yc(xsi_n)-yc(xsi_1)) - (xsi_n-xsi_1)*(dycdt(xsi_n) + lam_bc*dxbde(eta)))
-     
-    dhd_y_de <- (dydde(eta)-dybde(eta)) +
-        f_eta_m * ( -(xsi_n-xsi_1)*( lam_da*0*eta)) -
-        ( (ya(xsi_n)-ya(xsi_1)) - (xsi_n-xsi_1)*(dyadt(xsi_1) + 
-          lam_da*dxdde(eta))) +
-        f_eta_1 * ( -(xsi_n-xsi_1)*( lam_cd*0*(eta))) +
-        ( (yc(xsi_n)-yc(xsi_1)) - (xsi_n-xsi_1)*(dycdt(xsi_1) + lam_cd*dxdde(eta)))
-    
-    dhdb_xdt <- rep(1,length(tau)) %o% (-xd(eta) + xb(eta)) +
-          (dxadt(tau) + xa(xsi_1) - xa(xsi_n)) %o% f_eta_m +
-          (dxcdt(tau) + xc(xsi_1) - xc(xsi_n)) %o% f_eta_1
-    
-    dhdb_ydt <- rep(1,length(tau)) %o% (-yd(eta) + yb(eta)) +
-          (dyadt(tau) + ya(xsi_1) - ya(xsi_n)) %o% f_eta_m +
-          (dycdt(tau) + yc(xsi_1) - yc(xsi_n)) %o% f_eta_1
-    
-    dhdb_xde <- f_xsi_n %o% dxdde(eta) + f_xsi_1 %o% dxbde(eta) -
-          (xa(tau) - f_xsi_n*xa(xsi_1) - 
-           f_xsi_1*xa(xsi_n)) %o% rep(1, eta_anz) +
-          (xc(tau) - f_xsi_n*xc(xsi_1) - f_xsi_1*xc(xsi_n)) %o% rep(1, eta_anz)
-    
-    dhdb_yde = f_xsi_n %o% dydde(eta) + f_xsi_1 %o% dybde(eta) -
-          (ya(tau) - f_xsi_n*ya(xsi_1) - 
-           f_xsi_1*ya(xsi_n)) %o% rep(1, eta_anz) +
-          (yc(tau) - f_xsi_n*yc(xsi_1) - f_xsi_1*yc(xsi_n)) %o% rep(1, eta_anz) 
-    
-    dx_db_dt <- dhdb_xdt + (f_xsi_n^2 - 2*f_xsi_1*f_xsi_n) %o% hd_x -
-                (f_xsi_1^2 - 2*f_xsi_1*f_xsi_n) %o% hb_x
-    
-    dy_db_dt <- dhdb_ydt + (f_xsi_n^2 - 2*f_xsi_1*f_xsi_n) %o% hd_y -
-                (f_xsi_1^2 - 2*f_xsi_1*f_xsi_n) %o% hb_y
-    
-    dx_db_de <- dhdb_xde + (f_xsi_1*(f_xsi_n^2)) %o% dhd_x_de -
-                (f_xsi_n*(f_xsi_1^2)) %o% dhb_x_de
-    
-    dy_db_de <- dhdb_yde + (f_xsi_1*(f_xsi_n^2)) %o% dhd_y_de -
-                (f_xsi_n*(f_xsi_1^2)) %o% dhb_y_de
-  
-    res <- list(x_db, y_db, dx_db_dt, dx_db_de, dy_db_dt, dy_db_de)
-     names(res) <- c("x_db", "y_db", "dx_db_dt", "dx_db_de", "dy_db_dt", "dy_db_de")
-   return(res)
-   } 
-
-  #---------------------------------------------------------------------------
-   drhodeta <- function (tt ,y ,...){
-   #  derivatives with respect to eta for ivp
-      coords <- koor_dbm(eta = tt, tau = y, ...)  
-      rhodot <-  with(coords, 
-          -(dx_db_dt * dx_db_de + dy_db_dt * dy_db_de) / (dx_db_dt^2 + dy_db_dt^2)
-         )
-   return( list(as.vector(rhodot)) )  
-   }
- 
-  #-------------------------------------------------------------------------------   
-   write.geofile <- function( outfile, w_fix = 0 , ...){  
-   #  write CATFLOW geometry file
-     fid <- file(outfile, open = "w")
-     # three header lines
-     write(sprintf("%6i %6i %7.4f %5i (%3i Punkte)" ,eta_anz, xsi_anz, w_fix, 
-            numh, punkteh), fid)
-     write( sprintf('%12.2f %12.2f %8.2f' ,re_bez, ho_bez, z_bez), fid)
-     write( sprintf('%12.2f %10.4f %10.4f' ,tot.area, breite, laenge), fid)
-     # column with eta values
-     write( sprintf('%10.8f', eta), fid)
-     # four columns with xsi, real-world coords of slope, slope width
-     write( sprintf('%10.8f %12.4f %12.4f %12.4f' ,xsi, re, ho, varbr) ,fid)
-     # seven columns with y, x, fe, fx, angle of xsi, angle anisotropy, 1
-     write( sprintf('%10.4f %10.4f %14.8f %14.8f %12.8f %8.4f %i', 
-             as.vector(y), 
-              as.vector(x),
-               as.vector(t(sqrt(g_eta))), 
-                as.vector(t(sqrt(g_xsi))),
-                 as.vector(t(ws)), 
-                  as.vector(t(wh)), 
-                   1) ,fid)
-     close(fid)
-    return(invisible(NULL)) }
-
-#-------------------------------------------------------------------------------
-
-  plofun <- function(plottitle = "Model geometry (zoom enabled)", ...) {
-  # plotting function 
-       matplot(x,y, t = "l", pch = "", main = plottitle, ...)
-       matlines(t(x),t(y), type = "l", pch = "",...)
-       return(invisible())}
- 
-#-------------------------------------------------------------------------------
-## end of definitions of internal functions
+    #-------------------------------------------------------------------------------
+    ## end of definitions of internal functions
 
 ################################################################################
 # Start of geometry routine
@@ -496,7 +496,7 @@ function( # # # produces a geometry file for the CATFLOW code
  #   t |
  #   a   C              XA(tau) XA'(tau)  --> xa(tau) dxadt(tau)
  #     ---------            YA(tau) YA'(tau)
- #    |     |            XC(tau) XC'(tau)
+ #     |     |            XC(tau) XC'(tau)
  #    D|     |B           YC(tau) YC'(tau)
  #    |     |            XB(eta) XB'(eta) XB''(eta)
  #  y ^  ---------  --> xsi, tau     YB(eta) YB'(eta) YB''(eta)
@@ -684,6 +684,17 @@ function( # # # produces a geometry file for the CATFLOW code
   grad_b <- lm(pyb~pxb)   # = gradient(pyb,pxb)
   grad_d <- lm(pyd~pxd)   # = gradient(pyd,pxd)
   
+  # check if regression worked (sometimes crashes with large x values ?)
+  if(any(is.na(coef(grad_b))) ) {
+     warning("Right boundary not well defined. Consider increasing soil thickness dyy. ")
+    coef(grad_b)[2] <- unique(gradient(pyb,pxb))
+    }
+  
+ if( any(is.na(coef(grad_d))) ) {
+     warning("Left boundary not well defined. Consider increasing soil thickness dyy. ")
+     coef(grad_d)[2] <- unique(gradient(pyd,pxd))
+    }
+ 
   # slope of line
   grad_ba <- coef(grad_b)[2]
   grad_da <- coef(grad_d)[2]
@@ -696,7 +707,8 @@ function( # # # produces a geometry file for the CATFLOW code
    matpoints(sqrt((xh - xh[1])^2 + (yh - yh[1])^2) + dxx,zh, col = 3, type = "l")
     
     legend("topright", "Original slope line", col = 3, lty = 3, pch = 20, bty = "n")
-    abline(grad_b, col = 1); abline(grad_d, col = 2) 
+    try(abline(grad_b, col = 1))
+    try(abline(grad_d, col = 2))
     if(interactive() && .Platform$OS.type=="windows") bringToTop(which =  dev.cur())
     }
        
