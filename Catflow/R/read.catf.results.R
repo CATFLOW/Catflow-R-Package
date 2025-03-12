@@ -21,30 +21,48 @@ res <- lapply(files2read, function(x) { erg <- read.catf.resultmat(x)
                     ) 
  names(res) <- result.files.mat
  
+ ## check if single or multiple hillslopes
+  laenge <- lapply(res, length)
  
-# extract time - first check if equal in all files
-simtim <- sapply(res, function(x) x[["time"]])
+if( all(laenge == 2))  # single slope
+{  # extract time - check if equal in all files
+   simtim <- sapply(res, function(x) x[["time"]])
+ 
+   if(ncol(simtim)>1)
+   {
+   ind <- combn(1:ncol(simtim),2, simplify = FALSE) 
+   ind <- sapply(ind, function(x, y = simtim) all.equal(y[,x[1]], y[,x[2]]))
+   
+   stopifnot("Time steps not equal in out.files!" = all(ind))   # stops if not unique time vector in all files
+   }
+   
+   # keep only values, not time in results list
+   for(i in 1:length(res)) res[[i]] <- res[[i]][[1]]
+  
+   # add time vector
+   res$time <- simtim[,1]
 
- if(!class(simtim) %in% c("data.frame","matrix")){
-   short.file <- result.files.mat[which.min(sapply(simtim, length))]
-    stop(paste("Time steps not equal in out.files!",
-         "Check", short.file) ) 
+ } else {  # several slopes
+    simtim <- lapply(res, function(x) sapply(x, function(y) y$time))
+     # check if all are equal within each variable (equality between hillslopes)
+     same_timestamp <- sapply(simtim, function(x) all(apply(x,1 , function(row) all(row == row[1]))))
+     
+    # check for equality between variables
+    if(all(same_timestamp)) {
+       all_timestamps <- sapply(simtim, function(x) x[,1])
+       all_timestamps_same <- apply(all_timestamps, 1 , function(row) all(row == row[1]))
+
+       }
+ 
+   # one common time vector
+    if( all(same_timestamp) & all(all_timestamps_same) ){   simtim <- simtim[[1]][,1]
+     } else { stop(paste("Several slopes, but Time steps not equal in out.files!"))
+     }
+  
+   res <- lapply(res, function(x) lapply(x, function(y) y[[1]]))
+   res$time <- simtim
   }
 
- if(ncol(simtim)>1)
- {
- ind <- combn(1:ncol(simtim),2, simplify = FALSE) 
- ind <- sapply(ind, function(x, y = simtim) all.equal(y[,x[1]], y[,x[2]]))
- 
- stopifnot(all(ind))   # stops if not unique time vector in all files
- }
- 
- # keep only values, not time in results list
- for(i in 1:length(res)) res[[i]] <- res[[i]][[1]]
-
- # add time vector
- res$time <- simtim[,1]
- 
 # balance file
 if(!missing(balance.file)) {
   res$balance <- read.catf.balance( file.path(resdir,balance.file)) }
