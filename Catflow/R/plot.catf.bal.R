@@ -1,40 +1,61 @@
-plot.catf.bal <-
-function(bilanz, interact = TRUE, ylim, stay = F, ...)
+﻿plot.catf.bal <-
+function(bilanz, ylim, unit = "m³", on.top = FALSE, stay = FALSE, ...)
 {  
  if(is.character(bilanz)) bilanz <- read.catf.balance(bilanz, plottin = FALSE, 
                      differences = FALSE) 
  
  if(! is.data.frame(bilanz)) stop("'plot.catf.bal': Either a data frame or a file name of a balance file must be given!")
  
- 
- Nied <- bilanz[, 14]
+ Time <- bilanz[, 3]
+ Internbil <- bilanz[, 4]                  ## == - Oberrand + Auffeuchtung - Senken - Unterrand - Rechtrand   #  positive when  Out > In 
  Auffeuchtung <- bilanz[, 5]
  Senken <- bilanz[, 6]
+ Bilrand <- bilanz[, 7]
+ Oberrand <- bilanz[, 8]
  Rechtrand <- bilanz[, 9]
  Unterrand <- bilanz[, 10]
  Linkrand <- bilanz[, 11]
  Ofa <- bilanz[, 12]
- BodenVerd <- bilanz[, 17]
- Interzep <- bilanz[, 16]
+ Nied <- bilanz[, 14]
+ Nied_mm <- bilanz[, 15]
+  Interzep <- bilanz[, 16]
+BodenVerd <- bilanz[, 17]
  Transp <- bilanz[, 18]
- # Totale <- Nied-Auffeuchtung+Senken+Unterrand+Rechtrand-Ofa-BodenVerd-Interzep 
- Totale <- Nied -Auffeuchtung -Transp +Unterrand +Rechtrand + Linkrand -Ofa -BodenVerd -Interzep 
- if(missing(ylim)) ylim = range(c(bilanz[, c(5, 12, 14, 16, 17)], 
-                  -bilanz[, c(9, 10, 11, 6)], Totale))
+
+#.. Calculations
+
+ surfbal <- - Nied +( Oberrand + Ofa + Interzep)        # positive when  Out>  In 
+  
+  ## OLD logic, albeit now with correct components
+  # Totale <- -Nied + Auffeuchtung  - (Senken +Unterrand +Rechtrand + Linkrand) +Ofa +Interzep 
+  # --> equals surfbal + Internbil
+
+ area <-  Nied/(Nied_mm/1000)                     # calculate Surface area from Precipitation data
+
+ if(unit =="mm")
+  {  unitfac <- 1000/area[length(Nied)]
+ } else unitfac <- 1
+
+  
+
+ #.. Plotting
+
+ if(missing(ylim)) ylim = range(c(Nied, Auffeuchtung, Ofa, Interzep, BodenVerd, surfbal, Internbil), 
+                  -c(Rechtrand, Unterrand, Linkrand, Senken) )*unitfac
 
   opa <- par(oma = c(0,0,0,9.5) )
   
-  plot(bilanz[, 3]/86400, Nied, typ = "l", , ylab = "[m3]", xlab = "Time [d]", ylim = ylim, ...)
- lines(bilanz[, 3]/86400, Ofa,  col = "blue")
- lines(bilanz[, 3]/86400, -Rechtrand,  col = "darkblue", lty = 2)
- lines(bilanz[, 3]/86400, -Unterrand,  col = "brown")
- lines(bilanz[, 3]/86400, -Linkrand, col = "grey" , lty = 2)
- lines(bilanz[, 3]/86400, Auffeuchtung,  col = "lightblue")
- lines(bilanz[, 3]/86400, BodenVerd,  col = "green")
- lines(bilanz[, 3]/86400, Transp, col = "darkgreen" , lty = 3)
+  plot(Time/86400, Nied*unitfac, typ = "l", , ylab = unit, xlab = "Time [d]", ylim = ylim, ...)
+ lines(Time/86400, Ofa*unitfac,  col = "blue")
+ lines(Time/86400, -Rechtrand*unitfac,  col = "darkblue", lty = 2)
+ lines(Time/86400, -Unterrand*unitfac,  col = "brown")
+ # lines(Time/86400, -Linkrand*unitfac, col = "grey" , lty = 2)
+ lines(Time/86400, Auffeuchtung*unitfac,  col = "lightblue")
+ lines(Time/86400, BodenVerd*unitfac,  col = "green")
+ lines(Time/86400, -Senken*unitfac, col = "darkgreen" , lty = 3)
  
- lines(bilanz[, 3]/86400, Totale,  col = "red", lty = 2) 
- lines(bilanz[,3]/86400, bilanz[,4], col = 6)
+ lines(Time/86400, surfbal*unitfac,  col = "red", lty = 2)
+ lines(bilanz[,3]/86400, Internbil*unitfac, col = 6)
  
  par(opa)
  
@@ -44,7 +65,7 @@ function(bilanz, interact = TRUE, ylim, stay = F, ...)
  legend("right", c("Precipitation", "Surface runoff", "Right bound. flux",
         "Left bound. flux",
          "Lower bound. flux", "Soil moist.", "Soil evap.", "Transpiration", 
-         "Total bal.","Internal bal."), 
+         "Surface bal.","Internal bal."),
    title ="Legend",
    col = c(1, "blue", "darkblue", "grey", "brown", "lightblue", "green", "darkgreen", "red", 6), 
     lty = c(1, 1, 2, 2, rep(1, 3), 3, 2, 1), bty = "o"    
@@ -52,8 +73,12 @@ function(bilanz, interact = TRUE, ylim, stay = F, ...)
 
  par(opa)   
     
- if(interact && .Platform$OS.type == "windows") bringToTop(stay = stay)
+ if(on.top && .Platform$OS.type == "windows") bringToTop(stay = stay)
  
-return(invisible(data.frame(time = bilanz[, 3], total = Totale) ) ) 
+return(invisible(data.frame(time = Time, "Surf.bal" = surfbal, "Totale" =  surfbal + Internbil) ) ) 
 }
  
+
+
+
+ ### JW Umrechnung in mm!
