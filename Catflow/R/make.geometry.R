@@ -470,7 +470,7 @@ function( # # # produces a geometry file for the CATFLOW code
     
       plofun <- function(plottitle = "Model geometry (zoom enabled)", ...) {
       # plotting function 
-           matplot(x,y, t = "l", pch = "", main = plottitle, ...)
+           matplot(x,y, type = "l", pch = "", main = plottitle, ...)
            matlines(t(x),t(y), type = "l", pch = "",...)
            return(invisible())}
      
