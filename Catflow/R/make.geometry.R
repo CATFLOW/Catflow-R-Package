@@ -24,13 +24,6 @@ function( # # # produces a geometry file for the CATFLOW code
   # dyy   - thickness of profile
   # xsi   - relative discretization in lateral direction
   # eta   - relative discretization in vertical direction
-  ### parameters which take default values when omitted ###
-  # htyp   - type of geometry: (1) constant thickness, (2) cake-shape
-  # numh   - ID for slope
-  # ho_bez  - point of reference for y-coordinate of slope profile (northing)
-  # re_bez  - point of reference for x-coordinate of slope profile (easting)
-  # z_bez  - point of reference for z-coordinate of slope profile (mean sea level)
-  # w.aniso - angle of main direction of anisotropy, positive counterclockwise 
   # out.file - name for ASCII file (CATFLOW geofile)
   
   
