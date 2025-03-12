@@ -17,13 +17,13 @@ Utilities for pre- and postprocessing for the hydrological model CATFLOW
 \tabular{ll}{
 Package: \tab Catflow\cr
 Type: \tab Package\cr
-Version: \tab 0.996\cr
-Date: \tab 2023-07-13\cr
+Version: \tab 0.997\cr
+Date: \tab 2025-03-12\cr
 License: \tab GPL-2\cr
 LazyLoad: \tab yes\cr
 }
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}  <j.wienhoefer@gmx.de>
+Jan \enc{WienhÃ¶fer}{Wienhoefer}  <jan.wienhoefer@kit.edu>
 }

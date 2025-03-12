@@ -1,5 +1,5 @@
-﻿plot.catf.bal <-
-function(bilanz, ylim, unit = "m³", on.top = FALSE, stay = FALSE, ...)
+plot.catf.bal <-
+function(bilanz, ylim, unit = "m3", on.top = FALSE, stay = FALSE, ...)
 {  
  if(is.character(bilanz)) bilanz <- read.catf.balance(bilanz, plottin = FALSE, 
                      differences = FALSE) 

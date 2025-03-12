@@ -1,11 +1,10 @@
 Encoding: latin1
 Package: Catflow
-Type: Package
 Title: CATFLOW Utilities
-Version: 0.996
-Date: 2023-07-13
-Author: Jan Wienhöfer
-Maintainer: J. Wienhöfer  <j.wienhoefer@gmx.de>
+Version: 0.997
+Date: 2025-03-12
+Author: Jan Wienhöfer [aut, cre]
+Maintainer: Jan Wienhöfer <jan.wienhoefer@kit.edu>
 Depends: R (>= 2.10.0), deSolve, RColorBrewer, splines, zoo, xts
 Description: This package is a collection of utilities for pre- and postprocessing for the hydrological model CATFLOW.
 License: GPL-2

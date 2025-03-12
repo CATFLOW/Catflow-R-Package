@@ -12,7 +12,7 @@ sequence, either on the screen or to a pdf file.
 \usage{
 plot.catf.movie(resultmat, geof, 
                 sel, begindate, outputPath, filename, 
-                SCREENPLOT = TRUE, delayTime = 0.1, 
+                SCREENPLOT = TRUE, delayTime = 1, 
                 pdf_width = 10, pdf_height = 7,
                 lowercut = 0, uppercut = 1, lencut =  8,
                 colorsForCuts,
@@ -87,12 +87,12 @@ No value is returned.
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
 \code{\link{read.geofile}}, \code{\link{read.catf.resultmat}},
-\code{\link{color.codes}}, \code{\link{node2poly}}
+\code{\link{node2poly}}
 }
 
 \examples{

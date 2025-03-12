@@ -41,7 +41,7 @@ function(relfak, steps = 1, max.dist, dimfak, reg = TRUE){
   right <- macpos[which(diff(macpos) > max.dist)+1]
   gap <- cbind(left,right)
    gap <- unlist(apply(gap, 1, 
-      function(x) seq(x["left"],x["right"], by = max.dist) ))          ## geändert 2016-07-15 to keep maximum dist
+      function(x) seq(x["left"],x["right"], by = max.dist) ))          ## changed 2016-07-15 to keep maximum dist
   
   macpos <- unique( sort(c(macpos, as.integer(gap) )) )
   
