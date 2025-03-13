@@ -18,6 +18,7 @@ Name (and path) of the file to read
 }
 }
 \details{
+         DEPRECATED
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
@@ -29,7 +30,7 @@ a list with the components:
     
     -  zh       : z-coordinate of slope line (surface elevation) [m]
     
-    -  tot.area : total area of slope [m²]
+    -  tot.area : total area of slope [mÂ²]
     
     -  bh       : slope width [m]
     
@@ -57,7 +58,7 @@ a list with the components:
 Reusser, D. (2004) Documentation to the CATFLOW wizard. [catflow.chm]
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
