@@ -78,13 +78,10 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 
 \examples{
-### TO DO ###
-## problem: file to read from INST folder##
-\dontrun{
-bla <- plot.catf.bal("bilanz.csv") 
+balancefile <- system.file("Catflow-TEST/out/bilanz.csv", package = "Catflow")
+
+balance <- plot.catf.bal(balancefile, unit="mm") 
 }
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+
 \keyword{utilities}
 
