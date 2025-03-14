@@ -15,19 +15,37 @@ read.surfrun.out(filename)
   \item{filename}{
 Name (and path) of an surface runoff output file to read 
 }
+  \item{GMT.off}{
+Offset to convert time zone of precipitation record to reference time zone
+(e.g., CET -> GMT: -3600)
 }
+  \item{timzon}{
+Reference time zone (e.g., GMT)
+}
+  \item{plotting}{
+Logical indicating if plotting should be done
+}
+}
+\details{
+To avoid possible problems with missing daylight saving time in the precipitation
+record, the index vector of the resulting \code{zoo} object is converted to a reference time zone without daylight saving, e.g.,
+'GMT' (=UTC), and shifted by an appropriate offset. 
 
+For example, if the time specification in
+the record originally is Central European Time (strictly without daylight saving time), the
+time is offset by -3600 s and treated as UTC. 
+}
 \value{
 A list with the following items:
- \item{orig }{Simulated surface runoff in original format: Time in s, rain in m/s, runoff in m^3/s and m^3, respectively}
- \item{converted }{Simulated surface runoff multiplied with the conversion factors specified in header: Time in d, rain in mm/h, runoff in mm/h and mm, respectively} 
+ \item{orig }{A \code{zoo} series with simulated surface runoff in original format: Time in s, rain in m/s, runoff in mÂ³/s and mÂ³, respectively}
+ \item{converted }{A \code{zoo} series with simulated surface runoff multiplied with the conversion factors specified in header: Time in d, rain in mm/h, runoff in mm/h and mm, respectively} 
 }
 
 \references{
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
@@ -35,10 +53,8 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 
 \examples{
-### TO DO ###
-## problem: file to read ##
+ofa <- read.surfrun.out(system.file("Catflow-TEST/out/qoben.out", package = "Catflow"))
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+
 \keyword{utilities}
 
