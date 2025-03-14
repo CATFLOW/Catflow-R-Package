@@ -60,14 +60,14 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \examples{
   set.seed(-80)
   
-  assign.mac.soil(output.file = "soil_horizons.bod", 
+ soil_horizons.bod <- tempfile()
+ assign.mac.soil(output.file = soil_horizons.bod, 
                   macgrid= matrix(rnorm(30, mean=3, sd=1), nrow=5, ncol=6),
                   thresh = 4, soil.matrix = 1, soil.macro = 2, numh = 1)
-  
-  file.show("soil_horizons.bod")
-  
-  ## maybe you like to delete the produced file
-     unlink("soil_horizons.bod")
+  \dontrun{
+  file.show(soil_horizons.bod)
+  }
+ 
 }
 
 \keyword{utilities }

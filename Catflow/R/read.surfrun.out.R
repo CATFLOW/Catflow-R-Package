@@ -1,7 +1,6 @@
 read.surfrun.out <-           # JW  check output across versions, check conversion
 function(filename,
          GMT.off = -3600, 
-         timzon = "GMT", 
          plotting = TRUE)
   {
   start.date <- read.table(filename, nrows = 1)  # currently unused
@@ -27,7 +26,7 @@ function(filename,
 
  ## convert to zoo
  timevec <- as.POSIXct(strptime( paste( start.date[1], start.date[2]), "%d.%m.%Y %H:%M:%S"), 
-                       tz = timzon) +  GMT.off  + qo$time 
+                       tz = "GMT") +  GMT.off  + qo$time 
  
  qo <- zoo(qo, timevec)
   qconv <- zoo(qconv, timevec)

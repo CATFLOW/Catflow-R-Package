@@ -62,7 +62,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \examples{
 
   example.balance <- read.catf.balance(system.file("Catflow-TEST/out/bilanz.csv", package = "Catflow"),
-                                       differences=T) 
+                                       differences=TRUE) 
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

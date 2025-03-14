@@ -9,7 +9,7 @@ Reads a precipitation record in CATFLOW-specific format, and returns a data fram
 \code{zoo} object with the record. Optionally, the precipitation record is plotted.
 }
 \usage{
-read.precip(file.nam = "./in/Klima/P_DB_knick_04.dat", 
+read.precip(filename, 
             GMT.off = -3600, timzon = "GMT", plotting = TRUE)
 }
 

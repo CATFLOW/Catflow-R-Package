@@ -6,7 +6,7 @@ Batch cleanup after CATFLOW simulation
 }
 \description{
 Copies some input files and files from the main simulation directory to a specified directory.
-The input directory and the remaining input files then are deleted.
+The input directory and the remaining input files then are DELETED.
 }
 \usage{
 catf.batch.cleanup(fol, 
@@ -72,32 +72,34 @@ Jan \enc{Wienhöfer}{Wienhoefer}
  \dontrun{
   # some input files
     test.files <- c("del.me.dat", "del.me.in", "del.me.geo")
-  # some temporary directory ## JW
-  
-  # make dummy simulation directory
-    dir.create("./TEST.CATFLOW")
+ 
+  # make temp  simulation directory with input subdirectory
+   testwd <- tempdir()
+    dir.create(file.path(testwd, "test.in") ) 
+ 
   # produce dummy test files in simulation directory
     sapply( test.files, function (nam) {
             cat("Test file 1 for function 'catf.batch.cleanup' (package CATFLOW)", 
-            file= paste("./TEST.CATFLOW", nam, sep="/1") )    
+            file= paste(testwd, nam, sep="/1") )    
             return("written")})
-  ## make dummy input subdirectory
-    dir.create("./TEST.CATFLOW/test.in")  
+
   ## produce dummy test files in input subdirectory
     sapply( test.files, function (nam) {
             cat("Test file 2 for function 'catf.batch.cleanup' (package CATFLOW)", 
-            file= paste("./TEST.CATFLOW/test.in", nam, sep="/2") )    
+            file= paste(file.path(testwd, "test.in") , nam, sep="/2") )    
             return("written")})
 
-  print(dir("TEST.CATFLOW", rec=T))
+  print(dir(testwd, rec=T))
 
   # ... and delete the dummy files, keeping '1del.me.dat' and '2del.me.geo'
-  catf.batch.cleanup("./TEST.CATFLOW", indir = "./test.in", interact = FALSE)
+  catf.batch.cleanup(testwd, 
+                     indir = "./test.in", 
+                     tardir ="./archive",
+                     interact = TRUE)
 
-  print(dir("TEST.CATFLOW", rec=T))
+  print(dir(testwd, rec=T))
    
-## delete the produced dummy simulation directory with all contents
-  unlink("./TEST.CATFLOW", rec=T)
+
  }
 }
 

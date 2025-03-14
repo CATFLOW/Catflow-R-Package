@@ -8,7 +8,9 @@ Read CATFLOW surface runoff output
 Reads a surface runoff output file from a CATFLOW simulation.
 }
 \usage{
-read.surfrun.out(filename)
+read.surfrun.out(filename,
+                 GMT.off = -3600, timzon = "GMT", plotting = TRUE)
+
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -16,24 +18,22 @@ read.surfrun.out(filename)
 Name (and path) of an surface runoff output file to read 
 }
   \item{GMT.off}{
-Offset to convert time zone of precipitation record to reference time zone
+Offset to convert time zone of precipitation record to reference time zone GMT
 (e.g., CET -> GMT: -3600)
 }
-  \item{timzon}{
-Reference time zone (e.g., GMT)
-}
+  
   \item{plotting}{
 Logical indicating if plotting should be done
 }
 }
 \details{
 To avoid possible problems with missing daylight saving time in the precipitation
-record, the index vector of the resulting \code{zoo} object is converted to a reference time zone without daylight saving, e.g.,
+record, the index vector of the resulting \code{zoo} object is converted to a reference time zone without daylight saving, namely,
 'GMT' (=UTC), and shifted by an appropriate offset. 
 
 For example, if the time specification in
 the record originally is Central European Time (strictly without daylight saving time), the
-time is offset by -3600 s and treated as UTC. 
+time is offset by -3600 s and reported as GMT. 
 }
 \value{
 A list with the following items:
