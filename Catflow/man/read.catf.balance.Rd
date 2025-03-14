@@ -53,17 +53,17 @@ In case several slopes were simulated, a list with data frames, one for each slo
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 \seealso{
-\code{\link{read.catf.results}}
+\code{\link{plot.catf.bal}},\code{\link{read.catf.results}}
 }
 
 \examples{
 
  \dontrun{
-        example.balance <- read.catf.balance(file.path(.libPaths(), "Catflow", "Catflow-TEST", "out", "bilanz.csv"),
-                                  plottin = T,  differences=T, cex=0.7) 
+  example.balance <- read.catf.balance(system.file("Catflow-TEST/out/bilanz.csv", package = "Catflow"),
+                                       differences=T) 
  }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

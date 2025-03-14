@@ -3,12 +3,24 @@ function(res.path, balance.file = "bilanz.csv", differences  = FALSE, plottin = 
  # reads file balance file, takes differences of data, 
  # plots original and differences, 
  # and returns either original data or differences 
+ 
+ # Entry
  if(missing(res.path)) { filename <- balance.file      # in current dir
  } else { if( "csv" %in% unlist(strsplit(res.path, "\\.")) )        # filename included in path?
        { filename <- res.path              
       } else filename <- file.path(res.path,balance.file)
      }
    
+ ## helper function
+  # take differences, because variables cumulated in output
+  differenced <- function(x) {  dummy <- rbind(0 ,x)          # appending 0 for keeping length
+           diffdata <- as.data.frame(apply(dummy, 2, diff))
+           diffdata[,1:3] <- x[,1:3]       # ID and Time not differenced
+           return(diffdata)
+  }
+
+
+ #. Start of function definition
  datafile <- readLines (filename)
   lang <- length(datafile)     # length of data file
    endtab <- grep("Abschlusstabelle",datafile)
@@ -18,8 +30,9 @@ function(res.path, balance.file = "bilanz.csv", differences  = FALSE, plottin = 
   units <- unlist( strsplit(datafile[2], ";"))     
     namen <- sub( "kumul.","", header ) 
       namen <- gsub( "[[:punct:]]","", namen ) 
-       namen <- paste(namen,units)     # include units
-         namen <- gsub('[[:space:]]', '', namen)  
+      
+   #    namen <- paste(namen,units)     # include units
+    #     namen <- gsub('[[:space:]]', '', namen)  
  
   
   # read data ; no. of rows: length of file - length of header - final table
@@ -37,25 +50,25 @@ function(res.path, balance.file = "bilanz.csv", differences  = FALSE, plottin = 
    }
    
   # assign column names
-  names(data) <- namen[1:ncol(data)]    
+  names(data) <- paste(namen,units)[1:ncol(data)]    
  
-  # take differences, because variables cumulated in output
-  differenced <- function(x) {  dummy <- rbind(0 ,x)          # appending 0 for keeping length
-           diffdata <- as.data.frame(apply(dummy, 2, diff))
-           diffdata[,1:3] <- x[,1:3]       # ID and Time not differenced
-           return(diffdata)
-  }
+  
  
- 
- # check wether there are several slopes
+ #.# check whether there are several slopes
  if(length(unique(data[,grep("Hg", namen)])) > 1) 
   {data <- split(data, data[,grep("Hg", namen)]) 
    if(differences) diffdata <- lapply(data, differenced)
-   if(plottin) cat("Balance file with several slopes. No plotting in this case - use 'lapply('result', plot.catf.bal)' instead.\n")    ## JW
+   if(plottin) cat("Balance file with several slopes. No plotting in this case - use 'lapply('result', plot.catf.bal)' instead.\n")   
+ 
  } else { 
    
-  if(differences) diffdata <- differenced(data)
- 
+  if(differences) { 
+     diffdata <- differenced(data)
+     names(diffdata)[4:ncol(data)]    <- paste(namen, paste0(units,"/dt"))[4:ncol(data)]   
+   }
+                      # JW consider converting to m³/s?
+   
+   
   ### Plotting selected columns vs. time [d]
   # 1 "Hg"   2"Zeitschritt"  3"Zeit"     
   #   4"totaleBil"   5"Auffeuchtung"  6 "SummeSenkenfl" 
