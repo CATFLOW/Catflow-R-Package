@@ -5,7 +5,7 @@ function( resultmat,               # values and  simulation times -> read.catf.r
           begindate ,              # "%d.%m.%Y %H:%M:%S", Time object, or NA / NULL
           outputPath ,             # When plotting to file ( SCREENPLOT = FALSE), 
           filename  ,              # you can set path and name of pdf file
-          SCREENPLOT = TRUE,       # Plot on screen, or files (TRUE/FALSE)
+          SCREENPLOT = FALSE,       # Plot on screen, or files (TRUE/FALSE)
           delayTime = 1,         # Delay time in sec. (for slower/faster plotting)
           pdf_width=10,
           pdf_height=7,
@@ -17,9 +17,11 @@ function( resultmat,               # values and  simulation times -> read.catf.r
      plotlab = TRUE                # plot.legend
           )
 ##########
+
+  ####
 {
 old.par <- par(no.readonly = TRUE) # all par settings which
-  on.exit(par(old.par))
+if(SCREENPLOT)  on.exit(par(old.par))
 
 if(missing(begindate)) begindate <- NULL    # some default date
 
@@ -111,7 +113,7 @@ for (j in 1:numbersteps) {
         { par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
           plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
         }
-    legend("right", legendtext, pch = 22, pt.bg = colorsForCuts, bty = "n", cex = 0.9, inset = c(0.05, 0.15))
+    legend("topright", legendtext, pch = 22, pt.bg = colorsForCuts, bty = "n", cex = 0.9, inset = c(0.05, 0.15))
     }
     par(old.par)
 
