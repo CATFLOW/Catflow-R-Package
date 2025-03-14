@@ -12,6 +12,10 @@ function(  output.file = "printout.prt",
  if (missing(end.time) & missing(intervall) & missing(length.prt)){ 
       stop("Error in write.printout() - check time sequence arguments!") }
 
+ if (!missing(end.time) & !missing(intervall) & !missing(length.prt)){ 
+      warning("write.printout() - end.time is not considered, because length and interval are set") }
+
+
 if(inherits(start.time, c("POSIXct"), "Date")){     # check if time object and convert to string 
    start.time <-  strftime(start.time, "%d.%m.%Y %H:%M:%S")
    }         
