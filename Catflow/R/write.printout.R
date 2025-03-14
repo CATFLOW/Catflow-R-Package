@@ -1,6 +1,6 @@
 write.printout <-
 function(  output.file = "printout.prt", 
-      start.time = "01.01.2004 00:00:00",    # dd.mm.yyyy hh:mm:ss
+      start.time = "01.01.2004 00:00:00",    # dd.mm.yyyy hh:mm:ss, or Time object
       end.time , # = "01.01.2005 00:00:00", 
       length.prt ,
       intervall ,
@@ -11,6 +11,14 @@ function(  output.file = "printout.prt",
 #
  if (missing(end.time) & missing(intervall) & missing(length.prt)){ 
       stop("Error in write.printout() - check time sequence arguments!") }
+
+if(inherits(start.time, c("POSIXct"), "Date")){     # check if time object and convert to string 
+   start.time <-  strftime(start.time, "%d.%m.%Y %H:%M:%S")
+   }         
+
+if(inherits(end.time, c("POSIXct"), "Date")){     # check if time object and convert to string 
+   end.time <-  strftime(end.time, "%d.%m.%Y %H:%M:%S")
+   }         
 
 # header
  faktor <- switch(time.unit, "d" = 86400, "h" = 3600, "m" = 60, "s" = 1)
@@ -33,11 +41,10 @@ function(  output.file = "printout.prt",
  } else zeitvec <- seq(first.time, by = intervall, length.out = length.prt) 
                                
 ###  
-# Verknuepfen von Zeitvektor und Schalter fuer Ausgabe gabe aller Knoten / an Oberflaeche 
- oop <- options(warn = -1)
+# Verknuepfen von Zeitvektor und Schalter fuer Ausgabe aller Knoten / an Oberflaeche 
  ausgabe <- rbind(round(zeitvec,2), flag) 
- options(oop)
-### 
+
+
 # in Datei schreiben
 write(c(zeile1a , faktor), ncolumns = 2, output.file, sep = "\t")
  write(c(zeile2, zeile3), output.file, append = T)

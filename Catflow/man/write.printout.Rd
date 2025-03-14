@@ -19,10 +19,10 @@ write.printout( output.file = "printout.prt",
 Name of output file to produce
 }
   \item{start.time}{
-Start date for the simulation (Time object or string in format "\%d.\%m.\%Y \%H:\%M:\%S")
+Start date for the simulation (Time object (Date, POSIXct) or string in format "\%d.\%m.\%Y \%H:\%M:\%S")
 }
   \item{end.time}{
-End date for the simulation (Time object or string in format "\%d.\%m.\%Y \%H:\%M:\%S")
+End date for the simulation (Time object (Date, POSIXct) or string in format "\%d.\%m.\%Y \%H:\%M:\%S")
 }
   \item{length.prt}{
 Length of printout record
@@ -67,7 +67,9 @@ Jan \enc{Wienhöfer}{Wienhoefer}
                  intervall = 0.5, time.unit = "h",
                  flag = 1)
                   
-  file.show(printtemp)
+  \dontrun{ 
+       file.show(printtemp)
+  }
 
 }
 
