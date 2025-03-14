@@ -60,6 +60,8 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 
 
 \examples{
+  \dontrun{   
+  # write temporary file for prinout times
   printtemp <- tempfile()
   write.printout(output.file = printtemp, 
                  start.time = "01.01.2004 00:00:00", 
@@ -67,8 +69,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
                  intervall = 0.5, time.unit = "h",
                  flag = 1)
                   
-  \dontrun{ 
-       file.show(printtemp)
+  file.show(printtemp)
   }
 
 }

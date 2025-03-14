@@ -37,7 +37,7 @@ No value.
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
@@ -55,10 +55,10 @@ Jan \enc{Wienhöfer}{Wienhoefer}
  
  # simulate vertical macropores
  sim <- sim.mak(test.sim.grid$x, test.sim.grid$z, test.sim.grid$width, x.step=10)
- \dontrun{
+
  # plot slope profile with simulated structures
  plot.macros(test.sim.grid$x, test.sim.grid$z, sim$relfak)
- }
+ 
 }
 
 \keyword{utilities}

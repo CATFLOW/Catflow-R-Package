@@ -56,7 +56,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \examples{
 
  rainfile <- system.file("Catflow-TEST/in/TEST.rain.dat", package = "Catflow")
- rain <- read.precip(rainfile, plotting=T)
+ rain <- read.precip(rainfile, plotting=FALSE)
  }
 }
 

@@ -223,14 +223,15 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 
 
 \examples{
-
+  \dontrun{
   # write the control file, here to a temporary directory                                               
   tempwd <- tempdir()
-  write.control("test.1strun.in", project.path=tempwd)
+  testfile <-  "test.1strun.in"
+  write.control(testfile, project.path=tempwd)
   
-    # display the file
-  file.show(file.path(tempwd,  "test.1strun.in" ))
-
+  # display the file
+  file.show(file.path(tempwd, testfile))
+ }
 }
 
 

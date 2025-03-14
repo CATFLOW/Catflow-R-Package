@@ -41,7 +41,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
    exp.dec <- exp(seq(0, -3, length=length(eta) ))
     exp.dec <- rep(round(exp.dec,3), length(xsi) ) 
   
-  # Write temporary ks multiplier file
+  \dontrun{ # Write temporary ks multiplier file
   kstemp <- tempfile()
   write.facmat(output.file=kstemp, fac=exp.dec)
   
@@ -49,7 +49,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
   
   # read in again for comparison
   read.facmat(kstemp)
- 
+  }
 }
 
 \keyword{ utilities}

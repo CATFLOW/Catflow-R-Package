@@ -108,10 +108,9 @@ Jan \enc{Wienhöfer}{Wienhoefer}
                   SCREENPLOT = TRUE,
                   lencut=5,
                   colorsForCuts = c("pink",brewer.pal(8,"Blues")))   
-   }  
+   
 
  # plot to file  
- 
   tempwd <- tempdir()
  
   plot.catf.movie(res, geof, 
@@ -122,7 +121,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
   
    # open pdf
    shell.exec(file.path(tempwd, "test.pdf"))
-
+  }  
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

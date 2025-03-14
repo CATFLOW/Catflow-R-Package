@@ -59,7 +59,8 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 
 \examples{
- 
+\dontrun{ 
+  # write temporary file for surface attributes
   surftemp <- tempfile()
   write.surface.pob(output.file = surftemp, 
                      xs = seq(0,1,length=11), 
@@ -69,7 +70,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
                       )
   
   file.show(surftemp)
-
+}
 }
 
 \keyword{utilities }

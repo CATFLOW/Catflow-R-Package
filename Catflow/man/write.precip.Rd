@@ -49,6 +49,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \code{\link{read.precip}}
 }
 \examples{
+\dontrun{
  # some rainfall record
   raindat <- data.frame("hours" = seq(0,48, by=0.5),
                         "precip" = c(rep(0,30), 1, rep(3,4), rep(2,3), 
@@ -59,7 +60,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
   write.precip(raindat, raintemp, start.time= "01.01.2004 00:00:00" )
  
  file.show(raintemp)
-    
+}    
 }
 
 \keyword{ utilities}

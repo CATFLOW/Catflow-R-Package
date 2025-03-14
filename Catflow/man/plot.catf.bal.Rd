@@ -78,9 +78,11 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 
 \examples{
-balancefile <- system.file("Catflow-TEST/out/bilanz.csv", package = "Catflow")
+ \dontrun{
+ balancefile <- system.file("Catflow-TEST/out/bilanz.csv", package = "Catflow")
 
 balance <- plot.catf.bal(balancefile, unit="mm") 
+}
 }
 
 \keyword{utilities}

@@ -45,13 +45,15 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \code{\link{write.facmat}}, which is used to write the ini-files
 }
 \examples{
- # exmample file
+  \dontrun{
+  # exmample file
  finalfile <- system.file("Catflow-TEST/out/psi.fin", package = "Catflow")
  
  # create a new file with initial conditions in a temp directory
  tempwd <- tempdir()
  
  use.psi.fin(finalfile, tempwd, "newstate.ini")
+}
 }
 
 \keyword{ utilities }

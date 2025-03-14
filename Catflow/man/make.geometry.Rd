@@ -166,7 +166,7 @@ This R code is an adaption of MATLAB code provided by Erwin Zehe.
                         # is not in list, or when make.output=FALSE
                       )
                       
-     test.geom <- make.geometry(simple.slope, make.output=FALSE)                 
+     test.geom <- make.geometry(simple.slope, plotting =FALSE, make.output=FALSE)                 
 }
 
 

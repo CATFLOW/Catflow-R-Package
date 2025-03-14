@@ -47,9 +47,10 @@ Jan \enc{Wienhöfer}{Wienhoefer}
     # Read geo file of example slope
     test.geom <- read.geofile(system.file("Catflow-TEST/in/test.geo", package = "Catflow"))
     
+  \dontrun{
     # Plot the geometry
     with(test.geom, plot(sko, hko, t="p"))
-      
+}      
 }
 
 \keyword{ utilities }

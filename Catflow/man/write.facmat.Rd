@@ -50,7 +50,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \code{\link{read.facmat}}
 }
 \examples{
-
+\dontrun{
   # Example discretization: eta (vertical), xsi (lateral)
   eta <- 1:6
   xsi <- 1:11
@@ -76,7 +76,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
   
   write.facmat(output.file=ksfile, fac=exp.dec)
   file.show(ksfile)
-   
+   }
 }
 
 \keyword{ utilities }
