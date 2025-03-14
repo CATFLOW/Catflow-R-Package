@@ -61,10 +61,9 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 
 \examples{
 
- \dontrun{
   example.balance <- read.catf.balance(system.file("Catflow-TEST/out/bilanz.csv", package = "Catflow"),
                                        differences=T) 
- }
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
