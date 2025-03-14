@@ -36,7 +36,7 @@ A list with the final matric potential of each hillslope in matrix form is retur
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
@@ -45,9 +45,14 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \code{\link{write.facmat}}, which is used to write the ini-files
 }
 \examples{
-  ### jw example file
+ # exmample file
+ finalfile <- system.file("Catflow-TEST/out/psi.fin", package = "Catflow")
+ 
+ # create a new file with initial conditions in a temp directory
+ tempwd <- tempdir()
+ 
+ use.psi.fin(finalfile, tempwd, "newstate.ini")
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+
 \keyword{ utilities }
 

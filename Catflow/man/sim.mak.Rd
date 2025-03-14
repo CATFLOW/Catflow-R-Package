@@ -46,7 +46,7 @@ Minimum seperation of individual macropores (in terms of columns of simulation g
 Optional: depth of layer boundary in case of two different layers
 }
   \item{kmacro}{
-Optional: mean hydraulic capacity of macropores [m^3/s]
+Optional: mean hydraulic capacity of macropores [m³/s]
 }
   \item{ksmean}{
 Optional: mean hydraulic conductivity of soil matrix [m/s] (for two layers: vector with 2 elements)
@@ -89,7 +89,7 @@ A list with the components:
 
 
 \author{
-Jan \enc{Wienh�fer}{Wienhoefer}
+Jan \enc{Wienhöfer}{Wienhoefer}
 }
 
 

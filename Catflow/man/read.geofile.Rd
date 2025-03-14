@@ -35,41 +35,21 @@ Name of the CATFLOW geometry file
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
 
 \seealso{
- \code{\link{make.geometry}}
+ \code{\link{make.geometry}}  ,    \code{\link{plot.catf.grid}} 
 }
 \examples{
-  \dontrun{
-    # example slope
-    simple.slope <- list(
-                        xh = seq(1,11, length=20),
-                        yh = seq(2,8, length=20),
-                        zh = approx(c(8,5),n=20)$y + sin((0:19)/2)/5 ,
-                        bh = rep(1,20),
-                        tot.area = 12 ,
-                        htyp = 1, 
-                        dyy = 2,
-                        xsi = seq(0,1,length=11),
-                        eta = seq(0,1,length= 6),
-                        out.file="test.geo"    
-                          # other parameters may take default values here
-                          )
-  
-    # generate CATFLOW geometry and write file 'test.geo'                   
-    test.slope <- make.geometry(simple.slope, make.output=T, plotting=F)
+    # Read geo file of example slope
+    test.geom <- read.geofile(system.file("Catflow-TEST/in/test.geo", package = "Catflow"))
     
-    # read the produced file and plot computational nodes
-    test.geom <- read.geofile("test.geo")
-      with(test.geom, plot(sko, hko, t="p"))
-   
-    ## finally, delete the produced file and objects
-    unlink("test.geo"); rm(simple.slope, test.slope, test.geom)
-  }                
+    # Plot the geometry
+    with(test.geom, plot(sko, hko, t="p"))
+      
 }
 
 \keyword{ utilities }

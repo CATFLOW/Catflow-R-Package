@@ -26,12 +26,12 @@ or a data frame with time since start date in the first column, and a climate re
 subsequent columns.
 The climate record holds:
  \tabular{ll}{
-\code{GlobRad}: \tab Global radiation [W/m²] \cr                                   
-  \code{NetRad}: \tab Net radiation [W/m²]  \cr  
-  \code{Temp}: \tab Temperature [°C] \cr  
+\code{GlobRad}: \tab Global radiation [W/mÂ²] \cr                                   
+  \code{NetRad}: \tab Net radiation [W/mÂ²]  \cr  
+  \code{Temp}: \tab Temperature [Â°C] \cr  
   \code{RelHum}: \tab Relative humidity [\%] \cr  
   \code{vWind}: \tab Wind velocity [m/s] \cr  
-  \code{dirWind}: \tab Wind direction [°, clockwise from North]\cr
+  \code{dirWind}: \tab Wind direction [Â°, clockwise from North]\cr
 }
   
 }
@@ -77,7 +77,7 @@ No value is returned. A short message indicates that a file has been produced.
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan Wienhöfer
+Jan WienhÃ¶fer
 }
 
 \seealso{
@@ -96,13 +96,15 @@ Jan Wienhöfer
               "vWind"  =  rlnorm(97, 0,1) ,
               "dirWind" = runif(97, 0, 359) 
               )
-                                                
- write.climate(climadat, "TEST.clima.dat", start.time= "01.01.2004 00:00:00" )
+# write the climate file, here to a temporary directory                                               
+  tempwd <- tempdir()
+  tempdat <- file.path(tempwd, "TEST.clima.dat")
+  
+  write.climate(climadat, tempdat , start.time= "01.01.2004 00:00:00" )
                 
- file.show("TEST.clima.dat")
-                
- ## maybe you like to delete the produced file
- unlink("TEST.clima.dat")
+   # display the file
+  file.show(tempdat)
+
  }       
 }
 

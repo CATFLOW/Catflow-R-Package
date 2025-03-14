@@ -43,38 +43,40 @@ A matrix with the specified value 'fac' is returned invisibly.
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
 \code{\link{read.facmat}}
 }
 \examples{
-  \dontrun{
+
   # Example discretization: eta (vertical), xsi (lateral)
-   eta <- 1:6
-    xsi <- 1:11
+  eta <- 1:6
+  xsi <- 1:11
+ 
+  # Temp dir and files
+  tempwd <- tempdir()
+  ksfile <- file.path(tempwd, "ksmult.dat")
+  inifile <- file.path(tempwd, "soilhyd.ini")
    
   # Dummy multipliers for scaling saturated hydraulic conductivity: all one
-  write.facmat(output.file="ksmult.dat")
-    file.show("ksmult.dat")
+  write.facmat(output.file = ksfile)
+  file.show(ksfile)
       
   # Initial conditions: Uniform Psi (soilhyd.ini)
   write.facmat(output.file="soilhyd.ini",
-               headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
-               fac = 0.8)
-    file.show("soilhyd.ini")
+             headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
+             fac = 0.8)
+  file.show("soilhyd.ini")
     
   # Multipliers for some exponential decrease of saturated hydraulic conductivity with depth
-   exp.dec <- exp(seq(0, -3, length=length(eta) ))
-    exp.dec <- rep(round(exp.dec,3), length(xsi) ) 
+  exp.dec <- exp(seq(0, -3, length=length(eta) ))
+   exp.dec <- rep(round(exp.dec,3), length(xsi) ) 
   
-  write.facmat(output.file="ksmult.dat", fac=exp.dec)
-     file.show("ksmult.dat")
+  write.facmat(output.file=ksfile, fac=exp.dec)
+  file.show(ksfile)
    
-  ## maybe you like to delete the produced files
-  unlink(c("ksmult.dat", "soilhyd.ini"))  
-  }
 }
 
 \keyword{ utilities }

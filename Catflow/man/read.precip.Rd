@@ -14,7 +14,7 @@ read.precip(file.nam = "./in/Klima/P_DB_knick_04.dat",
 }
 
 \arguments{
-  \item{file.nam}{
+  \item{filename}{
 Name (and path) of the precipitation file
 }
   \item{GMT.off}{
@@ -29,27 +29,24 @@ Logical indicating if plotting should be done
 }
 }
 \details{
-If the \code{zoo} package is installed, a \code{zoo} object with an index in POSIX format
-is returned. To avoid possible problems with missing daylight saving time in the precipitation
-record, the index vector is converted to a reference time zone without daylight saving, e.g.,
+To avoid possible problems with missing daylight saving time in the precipitation
+record, the index vector of the resulting \code{zoo} object is converted to a reference time zone without daylight saving, e.g.,
 'GMT' (=UTC), and shifted by an appropriate offset. 
 
 For example, if the time specification in
 the record originally is Central European Time (strictly without daylight saving time), the
 time is offset by -3600 s and treated as UTC. 
-
-Otherwise, a data frame with time and precipitation is returned.  
+ 
 }
 \value{
-Either a \code{zoo} object with the precipitation in original units and an index in POSIX
-format (see details), or a data frame with time (time elapsed since the start date) and
-precipitation in original units.
+A \code{zoo} object with the precipitation in original units and an index in POSIX
+format (see details).
 }
 \references{
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
@@ -57,21 +54,9 @@ Jan \enc{Wienhöfer}{Wienhoefer}
  \code{\link{write.precip}}
 }
 \examples{
- \dontrun{
- # some rainfall data
-  raindat <- data.frame("hours" = seq(0,48, by=0.5),
-                        "precip" = c(rep(0,30), 1, rep(3,4), rep(2,3), 
-                                      rep(0,25), rep(1,4), rep(0,30)) ) 
-                      
- # write a CATFLOW rainfall file
- write.precip(raindat, "TEST.rain.dat", start.time= "01.01.2004 00:00:00" )
-  file.show("TEST.rain.dat")
- 
- # ... and read it again
- rain <- read.precip(file.nam = "TEST.rain.dat", plotting=T)
- 
- ## maybe you like to delete the produced file
- #  unlink("TEST.rain.dat")
+
+ rainfile <- system.file("Catflow-TEST/in/TEST.rain.dat", package = "Catflow")
+ rain <- read.precip(rainfile, plotting=T)
  }
 }
 

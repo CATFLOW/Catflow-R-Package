@@ -2,7 +2,7 @@
 \alias{write.control}
 
 \title{
-Write control file for CATFLOW
+Write project control file for CATFLOW
 }
 \description{
 Writes a project control file for a CATFLOW simulation.
@@ -218,21 +218,19 @@ Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation
 
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
 \examples{
-  \dontrun{
-    write.control("TEST_CATFLOW.IN", output.path="TEST_CATFLOW_OUT")
+
+  # write the control file, here to a temporary directory                                               
+  tempwd <- tempdir()
+  write.control("test.1strun.in", project.path=tempwd)
   
-    file.show( "TEST_CATFLOW.IN" )
-    
-     
-    ## maybe you like to delete the produced file and directory  
-      unlink("TEST_CATFLOW.IN")
-      unlink("TEST_CATFLOW_OUT", recursive=T)
-  }
+    # display the file
+  file.show(file.path(tempwd,  "test.1strun.in" ))
+
 }
 
 

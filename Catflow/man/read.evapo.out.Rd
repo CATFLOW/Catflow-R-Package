@@ -24,7 +24,7 @@ A data frame with the contents of the evapo-transpiration file.
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
@@ -32,8 +32,9 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 
 \examples{
-### TO DO ###
-## problem: file to read ##
+  \dontrun{       # JW no output - so far
+    evap <- read.evapo.out(system.file("Catflow-TEST/out/evapo.out", package = "Catflow") ) 
+    }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

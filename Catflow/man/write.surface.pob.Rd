@@ -55,23 +55,21 @@ No value is returned. A short message indicates that a file has been produced.
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \examples{
- \dontrun{
-  write.surface.pob(output.file="surface.pob", 
-                     xs=seq(0,1,length=11), 
-                      lu=33,
-                       windid= rbind(matrix(rep(c(2,3,4,5), 5), nrow=5, byrow=T),
-                                     matrix(rep(c(1,2,3,4),6), nrow=6, byrow=T))
+ 
+  surftemp <- tempfile()
+  write.surface.pob(output.file = surftemp, 
+                     xs = seq(0,1,length=11), 
+                      lu = 33,
+                       windid = rbind(matrix(rep(c(2,3,4,5), 5), nrow=5, byrow=T),
+                                      matrix(rep(c(1,2,3,4), 6), nrow=6, byrow=T))
                       )
   
-  file.show("surface.pob")
-  
-  ## maybe you like to delete the produced file
-   file.remove("surface.pob")
-  }
+  file.show(surftemp)
+
 }
 
 \keyword{utilities }

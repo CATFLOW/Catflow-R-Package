@@ -31,23 +31,17 @@ Arguments to be passed to plot methods, such as graphical parameters (see \code{
 }
 }
 \details{
-If the \code{zoo} package is installed, a \code{zoo} object with an index in POSIX format
-is returned. To avoid possible problems with missing daylight saving time in the climate
-record, the index vector is converted to a reference time zone without daylight saving, e.g.,
+To avoid possible problems with missing daylight saving time in the precipitation
+record, the index vector of the resulting \code{zoo} object is converted to a reference time zone without daylight saving, e.g.,
 'GMT' (=UTC), and shifted by an appropriate offset. 
 
-For example, if the time specification
-in the record originally is Central European Time (strictly without daylight saving time),
-the time is offset by -3600 s and treated as UTC.
-
-
-Otherwise, a data frame with time and climate data is returned. 
-
+For example, if the time specification in
+the record originally is Central European Time (strictly without daylight saving time), the
+time is offset by -3600 s and treated as UTC. 
+ 
 }
 \value{
-Either a \code{zoo} object with the climate record and an index in POSIX format (see details),
- or a data frame with time (time elapsed since the start date) and climate record 
- in original units.
+A \code{zoo} object with the climate record and an index in POSIX format (see details).
 The climate record holds:
  \tabular{ll}{
 \code{GlobRad}: \tab Global radiation [W/m²] \cr                                   

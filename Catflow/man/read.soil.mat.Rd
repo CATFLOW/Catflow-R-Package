@@ -19,8 +19,7 @@ Name (and path) of the file with the soil type ID's
 }
 \details{
 The function \code{read.soil.mat} is designed for reading a soil type assignment
-of a CATFLOW simulation. The file "boden.dat" is generated automatically during a
-CATFLOW run.
+of a CATFLOW simulation. 
 }
 \value{
 A matrix with soil type identifiers (and same dimensions as the simulation grid of the
@@ -30,17 +29,15 @@ CATFLOW run).
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 \seealso{
-\code{\link{read.catf.results}}
+\code{\link{read.catf.results}} , \code{\link{plot.catf.grid}}
 }
 
 \examples{
-### TO DO ###
-## problem: file to read ##
- \dontrun{
- bla <- read.soil.mat("F:/CATF/Projekte/HalfProf/boden.dat") 
+
+ soilgrid <- read.soil.mat( system.file("Catflow-TEST/in/soils.bod", package = "Catflow"))
  }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

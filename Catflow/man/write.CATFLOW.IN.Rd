@@ -2,10 +2,10 @@
 \alias{write.CATFLOW.IN}
 
 \title{
-Write a project control file for CATFLOW
+Write main input file for CATFLOW
 }
 \description{
-Writes a project control file 'CATFLOW.IN' which specifies the control files to be 
+Writes the main input file 'CATFLOW.IN' which specifies the control files to be 
 proceeded by CATFLOW.
 }
 \usage{
@@ -32,7 +32,7 @@ No value is returned. A short message indicates success.
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
@@ -40,14 +40,16 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 \examples{
   \dontrun{
+  # some names of potential control files (just examples)
   control.files <- c("test.1strun.in","test.2ndrun.in")
   
-  write.CATFLOW.IN(control.files)
+  #  create a main input file with these control files in a temp dir
+  tempwd <- tempdir()
+  write.CATFLOW.IN(control.files, project.path=tempwd)
   
-  file.show("CATFLOW.IN")
-  
-  ## maybe you like to delete the produced file and directory  
-  file.remove("CATFLOW.IN")
+  # display the file
+  file.show(file.path(tempwd, "CATFLOW.IN"))
+ 
   }
 }
 

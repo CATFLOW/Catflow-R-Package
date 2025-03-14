@@ -26,14 +26,13 @@ A matrix of values from the input file.
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
 \code{\link{write.facmat}}
 }
 \examples{
-  \dontrun{
   # Example discretization: eta (vertical), xsi (lateral)
    eta <- 1:6
     xsi <- 1:11
@@ -42,15 +41,15 @@ Jan \enc{Wienhöfer}{Wienhoefer}
    exp.dec <- exp(seq(0, -3, length=length(eta) ))
     exp.dec <- rep(round(exp.dec,3), length(xsi) ) 
   
-  # Produce some ks multiplier file
-  write.facmat(output.file="ksmult.dat", fac=exp.dec)
-     file.show("ksmult.dat")
+  # Write temporary ks multiplier file
+  kstemp <- tempfile()
+  write.facmat(output.file=kstemp, fac=exp.dec)
   
-  read.facmat("ksmult.dat")
+  file.show(kstemp)
   
-  ## maybe you like to delete the produced file
-     unlink("ksmult.dat")  
-  }
+  # read in again for comparison
+  read.facmat(kstemp)
+ 
 }
 
 \keyword{ utilities}

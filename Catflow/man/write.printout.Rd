@@ -55,23 +55,20 @@ No value is returned. A short message indicates which file has been produced.
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
 \examples{
-  \dontrun{
-  write.printout(output.file = "./in/printout.prt", 
+  printtemp <- tempfile()
+  write.printout(output.file = printtemp, 
                  start.time = "01.01.2004 00:00:00", 
                  end.time = "03.01.2004 00:00:00", 
                  intervall = 0.5, time.unit = "h",
                  flag = 1)
                   
-  file.show( "printout.prt" )
+  file.show(printtemp)
 
-  ## maybe you like to delete the produced file and directory  
-  file.remove("printout.prt")
-  }
 }
 
 \keyword{ utilities }
