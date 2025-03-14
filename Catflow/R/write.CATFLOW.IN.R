@@ -1,8 +1,8 @@
 write.CATFLOW.IN <-
 function(control.files, project.path = NULL, flag = 2)
   {
-  if(is.null(project.path)) { main.file = "CATFLOW.IN" 
-  } else { main.file = file.path(project.path, "CATFLOW.IN") }
+  if(is.null(project.path)) { main.file = "catflow.in" 
+  } else { main.file = file.path(project.path, "catflow.in") }
   
  controllist <-  list(x = control.files, y = NA )
  
