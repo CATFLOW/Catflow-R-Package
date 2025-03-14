@@ -12,7 +12,7 @@ sequence, either on the screen or to a pdf file.
 \usage{
 plot.catf.movie(resultmat, geof, 
                 sel, begindate, outputPath, filename, 
-                SCREENPLOT = TRUE, delayTime = 1, 
+                SCREENPLOT = FALSE, delayTime = 1, 
                 pdf_width = 10, pdf_height = 7,
                 lowercut = 0, uppercut = 1, lencut =  8,
                 colorsForCuts,
@@ -37,7 +37,7 @@ Start date given as a suitable date-time object, or date string in the format "\
 If missing, the simulation time is used as title.
 }
   \item{SCREENPLOT}{
-Logical if plotting should occur on the screen (TRUE), or to a pdf file.
+Logical if plotting should occur on the screen (default:FALSE), or to a pdf file.
 }
   \item{delayTime}{
 Delay time between subsequent plot when plotting on the screen.
@@ -97,28 +97,32 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 
 \examples{
  % # JW  file.path(.libPaths(), "Catflow", "Catflow-TEST", "in", "test.geo")
- \dontrun{
  #geometry                                                  
   geof <- read.geofile(system.file("Catflow-TEST/in/test.geo", package = "Catflow"))
  #relative saturation 
   res <- read.catf.resultmat(system.file("Catflow-TEST/out/relsat.out", package = "Catflow") )   
  
+ \dontrun{
  # plot on screen  
-  plot.catf.movie(res, geof,  sel =12:22,  
-  colorsForCuts = c("pink",brewer.pal(8,"Blues")))   
-  
+  plot.catf.movie(res, geof,  sel =12:21, 
+                  SCREENPLOT = TRUE,
+                  lencut=5,
+                  colorsForCuts = c("pink",brewer.pal(8,"Blues")))   
+   }  
+
  # plot to file  
+ 
+  tempwd <- tempdir()
+ 
   plot.catf.movie(res, geof, 
-  SCREENPLOT = F, filename = "test.pdf",
-  outputPath = ".",                                # current dir
+  filename = "test.pdf",
+  outputPath = tempwd,                                
+  lencut=10,
   colorsForCuts = c("pink",brewer.pal(8,"Blues")))   
   
- # open pdf
- shell.exec( paste(getwd(), "Catflowtest.pdf", sep="/") )
- 
- ## delete the produced file
-  file.remove("Catflowtest.pdf")
-  }
+   # open pdf
+   shell.exec(file.path(tempwd, "test.pdf"))
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
