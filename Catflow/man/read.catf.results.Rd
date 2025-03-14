@@ -13,7 +13,7 @@ read.catf.results(resdir,
                                        "theta.out", "fl_xsi.out", 
                                        "fl_eta.out", "senken.out"),
                   balance.file, surfrun.file, evapo.file,
-                  saving = TRUE, target.dir  ) 
+                  target.dir  ) 
 }
 
 \arguments{
@@ -32,17 +32,14 @@ Name of the surface runoff file to read (optional)
   \item{evapo.file}{
 Name of the evapo-transpiration file to read (optional)
 }
-  \item{saving}{
-Logical: should the results be saved as \R object? 
-}
   \item{target.dir}{
-Target directory for the \R object to be saved (optional) 
+Target directory for saving an \R object (optional) 
 }
 }
 \details{
-If \code{saving == TRUE}, the CATFLOW results are saved as an \R object with the name
+If a \code{target.dir} is given, the CATFLOW results are saved as an \R object with the name
 "(/resdir).obj" (the name of the last folder of \code{resdir})
-in the specified target directory (if missing, the directory with the result files is used).
+in the specified target directory (if missing, no R object is saved).
 If the respective arguments are missing, the balance, surface runoff
 and evapotranspiration files are not read.
 }
@@ -63,8 +60,11 @@ A short message indicates which files were successfully read.
 }
 
 \examples{
-## TO DO 
-## PROBLEM: result files
+# Read in the default files and the balane from the example directory
+sim.result <- read.catf.results(resdir = system.file("Catflow-TEST/out", package = "Catflow"),
+                                balance.file = "bilanz.csv")
+                                
+names(sim.result)             
 }
 
 

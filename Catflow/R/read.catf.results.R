@@ -5,10 +5,10 @@ function(resdir,
      balance.file , 
      surfrun.file ,
      evapo.file ,
-     saving = TRUE, 
      target.dir ) 
 {
- if(missing(target.dir)) target.dir <- resdir
+ if(missing(target.dir)) {saving <- FALSE
+    } else saving <- TRUE
 
 # generate filenames to read from resdir argument
 files2read <- as.list(file.path(resdir, result.files.mat ))

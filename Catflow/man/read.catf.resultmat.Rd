@@ -39,7 +39,7 @@ A list with two components:
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
@@ -48,8 +48,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 
 \examples{
-  ## TODO
-  # PROBLEM: result file needed
+ relsat <- read.catf.resultmat(system.file("Catflow-TEST/out/relsat.out", package = "Catflow"))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
