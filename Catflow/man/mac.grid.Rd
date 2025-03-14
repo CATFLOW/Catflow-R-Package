@@ -45,7 +45,7 @@ eta - xsi - discretization.
 
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 \note{
 To avoid possible numerical artifacts in the determination of new grid indices, 

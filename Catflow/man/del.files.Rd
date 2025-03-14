@@ -34,7 +34,7 @@ No value is returned. A short message indicates which files have been removed.
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
@@ -45,7 +45,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 \examples{
   \dontrun{
-    # make dummy simulation directory
+    # make dummy simulation directory                    # JW make temp
       dir.create("./TEST.CATFLOW")
     # make dummy results subdirectory
       dir.create("./TEST.CATFLOW/test.out")  

@@ -59,14 +59,13 @@ When assigned, a list with two components is returned:
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
 \code{\link{make.geometry}}
 }
 \examples{
- \dontrun{
  # ... a simple slope
  simple.slope <- list(xh = seq(1,11, length=20),
                       yh = seq(2,8, length=20),
@@ -84,7 +83,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 
  # plot CATFLOW geometry and color-code the nodes according to elevation
  plot.catf.grid(test.geom$sko, test.geom$hko, val=test.geom$hko, plotpoints=TRUE)
- }
+
 }
 
 \keyword{utilities }

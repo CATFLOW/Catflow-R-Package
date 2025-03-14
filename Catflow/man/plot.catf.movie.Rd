@@ -2,7 +2,7 @@
 \alias{plot.catf.movie}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Plot CATFLOW results sequently 
+Plot CATFLOW results sequentially 
 }
 \description{
 Plots the results of a CATFLOW simulation for a hillslope profile in chronological
@@ -96,13 +96,12 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 
 \examples{
-  ## TODO
-  # PROBLEM: result file needed
-  \dontrun{
- #geometry 
-  geof <- read.geofile(file.path(.libPaths(), "Catflow", "Catflow-TEST", "in", "test.geo") )
+ % # JW  file.path(.libPaths(), "Catflow", "Catflow-TEST", "in", "test.geo")
+ \dontrun{
+ #geometry                                                  
+  geof <- read.geofile(system.file("Catflow-TEST/in/test.geo", package = "Catflow"))
  #relative saturation 
-  res <- read.catf.resultmat(file.path(.libPaths(), "Catflow", "Catflow-TEST", "out", "relsat.out") )   
+  res <- read.catf.resultmat(system.file("Catflow-TEST/out/relsat.out", package = "Catflow") )   
  
  # plot on screen  
   plot.catf.movie(res, geof,  sel =12:22,  

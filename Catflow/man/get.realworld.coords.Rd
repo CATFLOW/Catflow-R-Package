@@ -31,40 +31,26 @@ coordinates, do not match the original local coordinates within the specified to
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
 \code{\link{make.geometry}}, \code{\link{read.geofile}}
 }
 \examples{
- \dontrun{
   # example slope
-  simple.slope <- list(
-                      xh = seq(1,11, length=20),
-                      yh = seq(2,8, length=20),
-                      zh = approx(c(8,5),n=20)$y + sin((0:19)/2)/5 ,
-                      bh = rep(1,20),
-                      tot.area = 12 ,
-                      htyp = 1, 
-                      dyy = 2,
-                      xsi = seq(0,1,length=11),
-                      eta = seq(0,1,length= 6),
-                      out.file="test.geo"    
-                      # other parameters may take default values here
-                      )
-
-   # generate CATFLOW geometry and write file 'test.geo'
-   test.slope <- make.geometry(simple.slope, make.output=T, plotting=F)
+  geof <- system.file("Catflow-TEST/in/test.geo", package = "Catflow")
   
-   # read the produced file and plot profile line (map view)
-   test.rw.coords <- get.realworld.coords("test.geo")   
-    matplot(test.rw.coords$Re, test.rw.coords$Ho, xlab="easting", 
-            ylab="northing", main="Profile line ('simple slope')")
-
-   # finally, you may like to delete the produced file and objects
-    unlink("test.geo"); rm(simple.slope, test.slope, test.rw.coords)
- }
+  # Read the geo file and get real world coordinates
+   test.rw.coords <- get.realworld.coords(geof)   
+  # Plot profile line (map view)
+    matplot(test.rw.coords$Re, test.rw.coords$Ho, 
+            type="p", 
+            pch="+", 
+            col = 1,
+            xlab="easting", 
+            ylab="northing", 
+            main="Profile line ('simple slope')")
 }
 
 \keyword{ utilities }

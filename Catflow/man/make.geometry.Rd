@@ -150,7 +150,6 @@ This R code is an adaption of MATLAB code provided by Erwin Zehe.
 \code{\link{read.geofile}}
 }
 \examples{
-  \dontrun{
      simple.slope <- list(
                       xh = seq(1,11, length=20),
                       yh = seq(2,8, length=20),
@@ -168,7 +167,6 @@ This R code is an adaption of MATLAB code provided by Erwin Zehe.
                       )
                       
      test.geom <- make.geometry(simple.slope, make.output=FALSE)                 
-  }                    
 }
 
 

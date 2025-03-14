@@ -59,7 +59,7 @@ When assigned, a short message indicating which folder has been cleaned.
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
@@ -72,6 +72,8 @@ Jan \enc{Wienhöfer}{Wienhoefer}
  \dontrun{
   # some input files
     test.files <- c("del.me.dat", "del.me.in", "del.me.geo")
+  # some temporary directory ## JW
+  
   # make dummy simulation directory
     dir.create("./TEST.CATFLOW")
   # produce dummy test files in simulation directory

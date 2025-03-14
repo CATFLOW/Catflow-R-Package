@@ -51,12 +51,12 @@
   Oeffne Eingabedatei   in/boundary.rb                 (Unit: 27)
   Oeffne Eingabedatei   in/landuse/lu_set1.dat         (Unit: 15)
 
-Daten einlesen:          1.0 sec
+Daten einlesen:          0.0 sec
 
 Berechnungsmethode:      pic
 -------------------------------------------------------------------------
  Zeitpunkt       0.0208: Klimadaten       10 fehlen
-Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.3430E-03  0.1660E+02
+Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.3429E-03  0.1658E+02
  abbruch= T
 Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.1041E-03  0.1000E+04
  abbruch= T
@@ -64,23 +64,23 @@ Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.4691E-04
  abbruch= T
 Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.1410E-04  0.1000E+04
  abbruch= T
-Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.6345E-05  0.1000E+04
+Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.6344E-05  0.1000E+04
  abbruch= T
 Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.1904E-05  0.1000E+04
  abbruch= T
-Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.8568E-06  0.1000E+04
+Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.8567E-06  0.1000E+04
  abbruch= T
 Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.2570E-06  0.1000E+04
  abbruch= T
-Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.7712E-07  0.1000E+04
+Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.7711E-07  0.1000E+04
  abbruch= T
 Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.3470E-07  0.1000E+04
  abbruch= T
 Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.1041E-07  0.1000E+04
  abbruch= T
-Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.4685E-08  0.1000E+04
+Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq, rel_ab   0.4684E-08  0.1000E+04
  abbruch= T
-Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq   0.1771E-08
+Genauigkeit nicht erreicht: Hang   1, Zeit   0.02 Tage, rsq   0.1770E-08
  Zeitpunkt       0.0417: Klimadaten       10 fehlen
  Zeitpunkt       0.0625: Klimadaten       10 fehlen
  Zeitpunkt       0.0833: Klimadaten       10 fehlen

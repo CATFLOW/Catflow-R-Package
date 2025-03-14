@@ -50,7 +50,7 @@ No value is returned. A short message indicates that a file has been produced.
 
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 
@@ -58,7 +58,6 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \code{\link{sim.mak}}, \code{\link{sim.rectmak}}, \code{\link{sim.pipe}}
 }
 \examples{
-  \dontrun{
   set.seed(-80)
   
   assign.mac.soil(output.file = "soil_horizons.bod", 
@@ -69,7 +68,6 @@ Jan \enc{Wienhöfer}{Wienhoefer}
   
   ## maybe you like to delete the produced file
      unlink("soil_horizons.bod")
-  }
 }
 
 \keyword{utilities }

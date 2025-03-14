@@ -1,0 +1,57 @@
+01.01.2004 00:00:00.00      % start time
+03.01.2004 00:00:00      % end time  
+0                 % offset 
+pic                % computation method 
+1200               % dtbach [s] maximum time step for drainage network 
+1e-06               % qtol threshold for starting drainage network computation [cbm/s]
+1200               % dt_max [s] max. time step
+0.001               % dt_min [s] min. time step  
+30                % dt [s] initial time step
+0.003               % d_Th_opt [-] optimum change of soil moisture
+0.001               % d_Phi_opt [-] optimum change of suction head
+3                 % n_gr (3) threshold for reducing time step but carrying on the actual iteration
+10                % it_max (7) max. number of Picard-iterations
+5e-04              % piceps [-] (1.e-3) convergence criterium for Picard iteration 
+5e-07              % cgeps [m] (5.e-6) convergence criterium for cg method. 
+15                % ref. longitude for computation of time 
+9.746               % longi reference longitude
+47.35               % lati  reference latitude 
+0                 % istact number of solutes
+-80                % Seed for random number generator
+noiact               % switch for simulation of interaction between subsurface and channel water (simact -> yes, noiact -> no)
+18
+0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0
+out/log.out
+out/vg_tab.out
+out/bilanz.csv
+out/theta.out
+out/psi.out
+out/psi.fin
+out/fl_xsi.out
+out/fl_eta.out
+out/senken.out
+out/qoben.out
+out/evapo.out
+out/gang.out
+out/ve.out
+out/vx.out
+out/c.out
+out/hko.out
+out/sko.out
+out/relsat.out
+4
+in/soils.def
+in/timeser.def
+in/landuse/lu_file.def
+in/winddir.def
+1
+in/test.geo
+in/soils.bod
+in/ksmult.dat
+in/thsmult.dat
+in/profil.mak
+in/cont_vol.cv
+in/soilhyd.ini
+in/printout.prt
+in/surface.pob
+in/boundary.rb
