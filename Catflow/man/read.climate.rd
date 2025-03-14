@@ -9,7 +9,7 @@ Reads a climate record in CATFLOW-specific format, and returns a data frame or a
 object with the record. Optionally, the climate record is plotted.
 }
 \usage{
-read.climate( file.nam = "./in/Klima/climate_04.dat", 
+read.climate( file.nam, 
               GMT.off = -3600, timzon = "GMT", plotting = TRUE, ...)
 }
 
@@ -50,46 +50,33 @@ Either a \code{zoo} object with the climate record and an index in POSIX format 
  in original units.
 The climate record holds:
  \tabular{ll}{
-\code{GlobRad}: \tab Global radiation [W/m²] \cr                                   
-  \code{NetRad}: \tab Net radiation [W/m²]  \cr  
-  \code{Temp}: \tab Temperature [°C] \cr  
+\code{GlobRad}: \tab Global radiation [W/mÂ²] \cr                                   
+  \code{NetRad}: \tab Net radiation [W/mÂ²]  \cr  
+  \code{Temp}: \tab Temperature [Â°C] \cr  
   \code{RelHum}: \tab Relative humidity [\%] \cr  
   \code{vWind}: \tab Wind velocity [m/s] \cr  
-  \code{dirWind}: \tab Wind direction [°, clockwise from North]\cr
+  \code{dirWind}: \tab Wind direction [Â°, clockwise from North]\cr
 }
 }
 \references{
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
 \code{\link{write.climate}}
 }
 \examples{
- \dontrun{
- # some climate record
-  climadat <- data.frame(
-              "hours" = seq(0,48, by=0.5),
-              "GlobRad" =  ifelse(0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12) > 0,
-                                  0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12),  0),
-              "NetRad" = NA ,
-              "Temp" = 4 +  sin((seq(0,48, by=0.5) - 12)*pi/12)  ,
-              "RelHum" = 70 + 10* sin((seq(0,48, by=0.5))*pi/12) ,
-              "vWind"  =  rlnorm(97, 0,1) ,
-              "dirWind" = runif(97, 0, 359) 
-              )
-                      
- # write a climate file for CATFLOW
- write.climate(climadat, "TEST.clima.dat", start.time= "01.01.2004 00:00:00" )
-                
- # ... and read it again
- clima <- read.climate("TEST.clima.dat")
 
- ## maybe you like to delete the produced file
-   unlink("TEST.clima.dat")
+ # exmple climate record
+climfile <- system.file("Catflow-TEST/in/TEST.clima.dat", package = "Catflow")              
+ # ... and read it
+ clima <- read.climate(climfile)
+ 
+ \dontrun{  
+ plot(clima)                                   
  } 
 }
 
