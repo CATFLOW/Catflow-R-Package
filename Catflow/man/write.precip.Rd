@@ -42,26 +42,24 @@ No value is returned. A short message indicates that a file has been produced.
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
 \code{\link{read.precip}}
 }
 \examples{
- \dontrun{
  # some rainfall record
   raindat <- data.frame("hours" = seq(0,48, by=0.5),
                         "precip" = c(rep(0,30), 1, rep(3,4), rep(2,3), 
                                       rep(0,25), rep(1,4), rep(0,30)) ) 
                       
- write.precip(raindat, "TEST.rain.dat", start.time= "01.01.2004 00:00:00" )
+ # write rain record to a temporary file 
+  raintemp <- tempfile()
+  write.precip(raindat, raintemp, start.time= "01.01.2004 00:00:00" )
  
- file.show("TEST.rain.dat")
- 
- ## maybe you like to delete the produced file
- unlink("TEST.rain.dat")
- }       
+ file.show(raintemp)
+    
 }
 
 \keyword{ utilities}
