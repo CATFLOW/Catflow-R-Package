@@ -13,14 +13,15 @@ read.channelflow.out(filename, plotting = T)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{filename}{
-  Name (and path) of an evapo-transpiration file to read 
+  Name (and path) of a channel flow file to read 
 }
   \item{plotting}{
 Logical if the simulation results should be plotted.
 }
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
+CATFLOW produces a channel flow output file when a drainage network is included in the simulation.
+This function is prepared to read this file. # File not yet included in example JW 2025-03-15 
 }
 \value{
 A list with the following items:
@@ -33,7 +34,7 @@ Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 

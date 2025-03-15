@@ -9,7 +9,7 @@ Reads a surface runoff output file from a CATFLOW simulation.
 }
 \usage{
 read.surfrun.out(filename,
-                 GMT.off = -3600, timzon = "GMT", plotting = TRUE)
+                 GMT.off = -3600, plotting = TRUE)
 
 }
 %- maybe also 'usage' for other objects documented here.

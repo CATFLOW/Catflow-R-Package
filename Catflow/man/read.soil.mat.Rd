@@ -38,7 +38,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 \examples{
 
  soilgrid <- read.soil.mat( system.file("Catflow-TEST/in/soils.bod", package = "Catflow"))
- }
+ 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

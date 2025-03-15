@@ -57,7 +57,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 
  rainfile <- system.file("Catflow-TEST/in/TEST.rain.dat", package = "Catflow")
  rain <- read.precip(rainfile, plotting=FALSE)
- }
+ 
 }
 
 \keyword{ utilities }
