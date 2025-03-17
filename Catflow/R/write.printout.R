@@ -16,11 +16,11 @@ function(  output.file = "printout.prt",
       warning("write.printout() - end.time is not considered, because length and interval are set") }
 
 
-if(inherits(start.time, c("POSIXct"), "Date")){     # check if time object and convert to string 
+if(inherits(start.time, c("POSIXct", "Date"))){     # check if time object and convert to string 
    start.time <-  strftime(start.time, "%d.%m.%Y %H:%M:%S")
    }         
 
-if(inherits(end.time, c("POSIXct"), "Date")){     # check if time object and convert to string 
+if(inherits(end.time, c("POSIXct", "Date"))){     # check if time object and convert to string 
    end.time <-  strftime(end.time, "%d.%m.%Y %H:%M:%S")
    }         
 
