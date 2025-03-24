@@ -1,10 +1,8 @@
 make.geometry <-
 function( # # # produces a geometry file for the CATFLOW code 
                slope.list,   # list with input parameters
-               plotting = TRUE,   # plot during execution ?
                make.output = TRUE,  # write geometry file?
                project.path = NULL,# directory for outfile (optional)
-               useWithRStudio = F, # When using RStudio, plot functions with zoom do not work properly
                thick.tol = 0.2 ,  # tolerance for type 3 (scaling thickness) 
                htyp = 1,
                numh = 1,
@@ -12,8 +10,7 @@ function( # # # produces a geometry file for the CATFLOW code
                re_bez = 0,
                z_bez = 0,
                w.aniso = 0,
-              ... ){       # graphical parameters may be specified for the final plot, e.g. col = 1 for black lines, 'plottitle' overrides the default title of the plot
- 
+              ... ){       
  
   ## Input in slope.list:
   # xh    - x-coordinate of slope profile 
@@ -34,9 +31,9 @@ function( # # # produces a geometry file for the CATFLOW code
   bh <- slope.list[["bh"]]
   dyy <- slope.list[["dyy"]]
   xsi <- slope.list[["xsi"]]
-  if(any(xsi>1) | any(xsi<0)) stop("xsi not limited to the interval 0 - 1!")
+  if(any(xsi>1) || any(xsi<0)) stop("xsi not limited to the interval 0 - 1!")
   eta <- slope.list[["eta"]]
-   if(any(eta>1)| any(eta <0)) stop("eta not limited to the interval 0 - 1!")
+   if(any(eta>1) || any(eta <0)) stop("eta not limited to the interval 0 - 1!")
   htyp <- slope.list[["htyp"]]
   
   # check if file name is given, and optionally create directory
@@ -64,9 +61,8 @@ function( # # # produces a geometry file for the CATFLOW code
        # using the specified gradients at the endpoints with values valconds(i) ,
        # with i = 1 (i = 2) referring to the left (right) endpoint.
        #
-       # adapted from MATLAB/Octave function 'csape' [Copyright 1987-2003 C. de Boor and 
-       # The MathWorks, Inc. (MATLAB version); Copyright 2000,2001 Kai Habel (Octave version)]
-       #
+       # adapted from Octave function 'csape'; GNU GPL 3; Copyright 2000,2001 Kai Habel (Octave version)]
+       # https://sourceforge.net/p/octave/splines/ci/default/tree/inst/csape.m#l131
        #-------------------------------------
      
         stopifnot(is.vector(yi))          # check if y is vector
@@ -169,7 +165,7 @@ function( # # # produces a geometry file for the CATFLOW code
       #  mkpp: make piecewise polynomial        
                  # make.poly = T: generate spline object with intercept and zero slope
         if(!is.matrix(y))  y <- matrix( y, ncol = length(y))
-         if(is.null(dimnames(y))) dimnames(y) <- list(NULL, c("y","b","c","d")[1:ncol(y)])
+         if(is.null(dimnames(y))) dimnames(y) <- list(NULL, c("y","b","c","d")[seq_len(ncol(y))])
         
          if(make.poly){
           if(length(x) < (2*ncol(y)+1) ){ ### sufficient number of knots
@@ -189,7 +185,7 @@ function( # # # produces a geometry file for the CATFLOW code
       #  misc. functions for generating geometry
       ### 
         xa <- function (tau, typ = htyp,...){
-            if (typ == 1 | typ == 3 ) { xa <- tau*(max_xa-min_xa)+min_xa
+            if (typ == 1 || typ == 3 ) { xa <- tau*(max_xa-min_xa)+min_xa
             } else if (typ == 2) xa <- tau
          return(xa)}
         
@@ -197,7 +193,7 @@ function( # # # produces a geometry file for the CATFLOW code
             m <- length(et)
             if (typ == 1){
              xb <- et*(max_xb-min_xb) + min_xb
-            } else if (typ == 2 | typ == 3 ) xb <- rep(max_xb, m)
+            } else if (typ == 2 || typ == 3 ) xb <- rep(max_xb, m)
          return(xb)}
           
         xc <- function (tau,...) tau*(max_xc-min_xc)+min_xc   # used in dycdt
@@ -206,26 +202,26 @@ function( # # # produces a geometry file for the CATFLOW code
         # cf. xb(), but here minimum is considered for typ == 2
             m <- length(et)
             if (typ == 1){ xd <- et*(max_xd-min_xd)+min_xd
-            } else if (typ == 2 | typ == 3 ) xd <- rep(min_xd,m)
+            } else if (typ == 2 || typ == 3 ) xd <- rep(min_xd,m)
          return(xd)}
         
         ya <- function(tau, typ = htyp,... ){
             m <- length(tau)
-            if (typ == 1 | typ == 3 ){  ya <- predict (ppya, xa(tau))$y 
+            if (typ == 1 || typ == 3 ){  ya <- predict (ppya, xa(tau))$y 
             } else if(typ == 2) ya <- rep(min(pyd),m)
          return(ya)}
        
         yb <- function (et, typ = htyp,... ){
             m <- length(et)
             if (typ == 1){  yb <- predict (ppyb, xb(et))$y      
-            } else if(typ == 2 | typ == 3 ) yb <- et*(diff(range(pyb))) + min(pyb)
+            } else if(typ == 2 || typ == 3 ) yb <- et*(diff(range(pyb))) + min(pyb)
          return(yb)}
         
         yc <- function(tau, ... ) predict(ppyc, xc(tau))$y  
        
         yd <- function(et, typ = htyp,... ){
              if (typ == 1){  yd <- predict(ppyd, xd(et))$y     
-             } else if (typ == 2 | typ == 3 ) yd <- et*(max(pyd)-min(pyd))+min(pyd)
+             } else if (typ == 2 || typ == 3 ) yd <- et*(max(pyd)-min(pyd))+min(pyd)
          return(yd)}
       
       #-------------------------------------------------------------------------------
@@ -235,7 +231,7 @@ function( # # # produces a geometry file for the CATFLOW code
        ## derivatives at sides B and D: dxbde.m (max_xb, min_xb) and dxdde.m (max_xd, min_xd)
            m <- length(et)
            if (typ == 1) xb <- rep(1, m)*(max.x-min.x) else
-            if (typ == 2 | typ == 3 ) xb <- rep(0,m)
+            if (typ == 2 || typ == 3 ) xb <- rep(0,m)
         return(xb) }
         
        dxbde <- function(et,...) dxde(et, max_xb, min_xb,typ = htyp)
@@ -247,7 +243,7 @@ function( # # # produces a geometry file for the CATFLOW code
           if (typ == 1){                   
            yb <- predict (ppyb, xb(et, typ), deriv = 1)$y   ## gradient at location xb(et)
            yb <- yb * dxbde(et, typ)               
-          } else if (typ == 2 | typ == 3 ) yb = rep(1, m)  # ppyb defined in vertical direction!
+          } else if (typ == 2 || typ == 3 ) yb = rep(1, m)  # ppyb defined in vertical direction!
         return(yb)}                   
          
        dydde <- function (et, typ = htyp,... ){
@@ -256,14 +252,14 @@ function( # # # produces a geometry file for the CATFLOW code
           if (typ == 1){
            yd <- predict(ppyd, xd(et, typ), deriv = 1)$y     
             yd <- yd * dxdde(et, typ)
-          } else if (typ == 2 | typ == 3 ) yd <- rep(1, m)
+          } else if (typ == 2 || typ == 3 ) yd <- rep(1, m)
         return(yd)}
        
        dxadt <- function (tau, typ = htyp,...){ 
        # lower left corner of side A
           m <- length(tau)
           xa <- rep(1,m)
-           if (typ == 1 | typ == 3 ) xa <- xa * (max_xa-min_xa)     
+           if (typ == 1 || typ == 3 ) xa <- xa * (max_xa-min_xa)     
         return(xa)}
            
        dxcdt <- function(tau,...) {
@@ -279,7 +275,7 @@ function( # # # produces a geometry file for the CATFLOW code
        
        dyadt <- function(tau,typ = htyp,...){
             m <- length(tau)
-            if (typ == 1 | typ == 3 ){
+            if (typ == 1 || typ == 3 ){
              ya <- predict (ppya, xa(tau, typ), deriv = 1)$y      
              ya <- ya * dxadt(tau, typ) 
             } else if(typ == 2) ya <- rep(0,m)
@@ -291,7 +287,7 @@ function( # # # produces a geometry file for the CATFLOW code
            if (typ == 1){
             yb <-  predict (ppyb, xb(et, typ), deriv = 2)$y   
              yb <- yb* dxbde(et, typ)             
-           } else if (typ == 2 | typ == 3 ) yb <- rep(0, m) # zero slope (vertical)
+           } else if (typ == 2 || typ == 3 ) yb <- rep(0, m) # zero slope (vertical)
         return(yb)}             
           
        dyd2de2 <- function(et,typ = htyp,...){
@@ -300,7 +296,7 @@ function( # # # produces a geometry file for the CATFLOW code
            if (typ == 1){
             yd <- predict (ppyd, xd(et, typ), deriv = 2)$y  
              yd <- yd * dxdde(et, typ)        
-           } else if (typ == 2 | typ == 3 ) yd <- rep(0, m)
+           } else if (typ == 2 || typ == 3 ) yd <- rep(0, m)
         return(yd)}
       
       #-------------------------------------------------------------------------------
@@ -459,16 +455,7 @@ function( # # # produces a geometry file for the CATFLOW code
          close(fid)
         return(invisible(NULL)) }
     
-    #-------------------------------------------------------------------------------
-    
-      plofun <- function(plottitle = "Model geometry (zoom enabled)", ...) {
-      # plotting function 
-           matplot(x,y, type = "l", pch = "", main = plottitle, ...)
-           matlines(t(x),t(y), type = "l", pch = "",...)
-           return(invisible())}
-     
-    #-------------------------------------------------------------------------------
-    ## end of definitions of internal functions
+  ## end of definitions of internal functions
 
 ################################################################################
 # Start of geometry routine
@@ -602,13 +589,13 @@ function( # # # produces a geometry file for the CATFLOW code
    
   ### Possibly: thickness is not kept
     # check if predicted pya is higher than pyc
-    if( any(pyc- predict(side.a, pxc)$y < (1-thick.tol) * dyy) | 
+    if( any(pyc- predict(side.a, pxc)$y < (1-thick.tol) * dyy) || 
       any(pyc- predict(side.a, pxc)$y > (1+ thick.tol)* dyy) ){
   
     # iterative method
     i <- 1
     # refine if minimum thickness (two-third) is not reached  
-    while(any(pyc- predict(side.a, pxc)$y < (1-thick.tol) * dyy) |
+    while(any(pyc- predict(side.a, pxc)$y < (1-thick.tol) * dyy) ||
         any(pyc- predict(side.a, pxc)$y > (1+ thick.tol)* dyy) ) {     
                         
        midp <- unique(as.integer(seq(1,(2^i)-1)* 1/ 2^i *mm)   )
@@ -692,18 +679,18 @@ function( # # # produces a geometry file for the CATFLOW code
   grad_ba <- coef(grad_b)[2]
   grad_da <- coef(grad_d)[2]
   
-  # plotting
-   if(plotting){
-   matplot(cbind(pxa,pxc),cbind(pya,pyc), type = "l", main = "Geometry boundaries")
-   matpoints(cbind(pxb, pxd),cbind(pyb,pyd), pch = 21)
-   # original slope line 
-   matpoints(sqrt((xh - xh[1])^2 + (yh - yh[1])^2) + dxx,zh, col = 3, type = "l")
+  # # plotting          # JW intermediate plot
+  #  if(plotting){
+  #  matplot(cbind(pxa,pxc),cbind(pya,pyc), type = "l", main = "Geometry boundaries")
+  #  matpoints(cbind(pxb, pxd),cbind(pyb,pyd), pch = 21)
+  #  # original slope line 
+  #  matpoints(sqrt((xh - xh[1])^2 + (yh - yh[1])^2) + dxx,zh, col = 3, type = "l")
     
-    legend("topright", "Original slope line", col = 3, lty = 3, pch = 20, bty = "n")
-    try(abline(grad_b, col = 1))
-    try(abline(grad_d, col = 2))
-    if(interactive() && .Platform$OS.type=="windows") bringToTop(which =  dev.cur())
-    }
+  #   legend("topright", "Original slope line", col = 3, lty = 3, pch = 20, bty = "n")
+  #   try(abline(grad_b, col = 1))
+  #   try(abline(grad_d, col = 2))
+  ##   if(interactive() && .Platform$OS.type=="windows") bringToTop(which =  dev.cur())
+  #   }
        
   #----------------------------------------------------------------------------------
   # splines of sides A,C,B,D
@@ -845,8 +832,7 @@ function( # # # produces a geometry file for the CATFLOW code
           cat(paste("Done! Total time:", format(Sys.time()-tik,digits = 3),
               "\nGenerated geometry file", out.file,"\n\n") )
  } else cat(paste("Done! Total time:", format(Sys.time()-tik,digits = 3),"\n\n") )
-  if(!useWithRStudio && interactive() && .Platform$OS.type=="windows") bringToTop(-1)       # bring console on top (Win)
- ## -----------------------------------------------------------------------
+  ## -----------------------------------------------------------------------
 
  ## -----------------------------------------------------------------------
  # collect calculated values for return()
@@ -861,15 +847,7 @@ function( # # # produces a geometry file for the CATFLOW code
  ## -----------------------------------------------------------------------
 
 
- ## -----------------------------------------------------------------------
- ## Plot the geometry
- ## -----------------------------------------------------------------------
-  if(plotting){   
-   if(useWithRStudio) x11()
-   try(zoom(plofun,asp = 1,...) )
-  }
-  # -----------------------------------------------------------------------
-
+ 
  
  
  
