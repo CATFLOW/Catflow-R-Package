@@ -1,6 +1,6 @@
-*.Rcheck/*
+/*.Rcheck/*
 OLD/*
-*.gz
-*.r
-*.R
-*.code-workspace
+/*.gz
+/*.r
+/*.R
+/*.code-workspace
