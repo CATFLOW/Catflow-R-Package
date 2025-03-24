@@ -3,3 +3,4 @@ OLD/*
 *.gz
 *.r
 *.R
+*.code-workspace
