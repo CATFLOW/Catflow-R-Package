@@ -151,7 +151,8 @@ With this list we are ready to generate a CATFLOW geometry using \code{make.geom
 \begin{Sinput}
  test.geom <- make.geometry(simple.slope, project.path = indir)
    
- file.show(file.path(exampledir,"test.geo") )             ## display the produced file ##
+ ## display the produced file ##
+ file.show(file.path(exampledir,"test.geo") )             
                    
 \end{Sinput}
 \end{Schunk}                                            %
@@ -427,7 +428,7 @@ Note that a output directory named 'out' has been added to the current working d
 
 
 Now we can write the main control file, which merely contains the name of the project control file:
-<<mainFile>>=
+<<mainFile,results=hide>>=
  write.CATFLOW.IN(control.files="TEST.example.in", 
                   project.path = exampledir)
 @
@@ -610,10 +611,10 @@ then run the program. To do this within \proglang{R}, type:
 
 The simulation results are used in part \ref{sec:postproc} to demonstrate the post-processing facilities of the \pkg{Catflow} package.
 
-Do not refrain from tidying up:
-<<tidy1>>=
-detach(test.geom)
-@
+%Do not refrain from tidying up:
+%<<tidy1>>=
+%detach(test.geom)
+%@
 
  
 %%jw%% verweis auf inst directory
