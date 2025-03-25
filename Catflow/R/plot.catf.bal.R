@@ -73,7 +73,6 @@ function(bilanz, ylim, unit = "m3", on.top = FALSE, stay = FALSE, ...)
 
  par(opa)   
     
- if(on.top && .Platform$OS.type == "windows") bringToTop(stay = stay)
  
 return(invisible(data.frame(time = Time, "Surf.bal" = surfbal, "Totale" =  surfbal + Internbil) ) ) 
 }

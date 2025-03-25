@@ -9,8 +9,7 @@ function (fun , ...)
      "click 'Stopp' or hit 'Esc' to stop zooming.\n", sep = " ") )
    flush.console()
  while (TRUE) {
-  if( .Platform$OS.type == "windows") bringToTop()
-   p <- locator(n = 2)
+    p <- locator(n = 2)
    # enable stop
     if (is.null(p$x) || length(p$x) != 2)  break
    ## zoom out

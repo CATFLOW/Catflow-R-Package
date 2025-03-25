@@ -755,7 +755,6 @@ function( # # # produces a geometry file for the CATFLOW code
  tic <- Sys.time()
  #start loop over eta
  cat("Calculating eta:") 
- if(!useWithRStudio && interactive() && .Platform$OS.type=="windows") bringToTop(-1)       # bring console on top (Win)
  
   for ( i in 1:(eta_anz-1)){
      # info on console    

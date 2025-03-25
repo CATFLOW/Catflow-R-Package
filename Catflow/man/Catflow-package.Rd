@@ -14,13 +14,13 @@ Utilities for pre- and postprocessing for the hydrological model CATFLOW
 }
 
 \details{
-\tabular{ll}{
-Package: \tab Catflow\cr
-Type: \tab Package\cr
-Version: \tab 0.997\cr
-Date: \tab 2025-03-12\cr
-License: \tab GPL-2\cr
-LazyLoad: \tab yes\cr
+ular{ll}{
+Package:  Catflow
+Type:  Package
+Version: \tab 0.998\cr
+Date: \tab 2025-03-25\cr
+License:  GPL-2
+LazyLoad:  yes
 }
 }
 

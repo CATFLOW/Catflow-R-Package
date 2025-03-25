@@ -6,6 +6,8 @@ function( fol,           # directory with Catflow run to 'clean'
      interact = TRUE )     # logical: interactive use?
 {
     
+if(!interactive()) interact = FALSE
+
 work.dir <- getwd()
  on.exit(setwd(work.dir))
 
@@ -34,8 +36,7 @@ print(getwd() )  # print current dir
  # delete unnecessary stuff
   # delete input dir
    del.indir <- function(in.dir){
-   if (.Platform$OS.type=="windows") bringToTop(-1)       # bring console on top  (Win)
-   
+    
     frage <- readline(paste("Really delete directory", in.dir, 
     "and all files therein (y/n)? ") )
    
@@ -51,7 +52,6 @@ print(getwd() )  # print current dir
  
   # delete ALL files (but not directories)
    del.all.files <- function(tar.dir){
-    if (.Platform$OS.type=="windows") bringToTop(-1)       # bring console on top  (Win)
     frage <- readline(paste("Really delete all files in ", tar.dir, "(y/n)? ") )
     
     if(frage == "y" | frage == "Y") { file.remove(Sys.glob(file.path("*.*")) )   

@@ -3,7 +3,7 @@
 \alias{plot.catf.geometry}
 \title{Plot the geometry of a catflow object}
 \usage{
-plot.catf.geometry}(geom, zooming = TRUE, ...)
+plot.catf.geometry(geom, zooming = TRUE, ...)
 }
 \arguments{
 \item{geom}{A catflow geometry object as returned by \code{\link{make.geometry}}}

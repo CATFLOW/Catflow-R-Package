@@ -158,24 +158,21 @@ With this list we are ready to generate a CATFLOW geometry using \code{make.geom
 
 
 <<makeGeom,echo=FALSE, results=hide>>=
-
-  test.geom <- make.geometry(simple.slope, project.path = indir, plotting=FALSE)   ## interactive plotting causes problems, hence separate chunk ## 
+  test.geom <- make.geometry(simple.slope, project.path = indir)   ## interactive plotting causes problems, hence separate chunk ## 
 @ 
 
 \begin{figure}[h!]
 \begin{center}
-<<plotGeom,fig=TRUE, echo=FALSE,results=hide,height=4,width=6>>=
-opa <- par(mar=c(4,4,1,1))
-with(test.geom, matplot(sko,hko, t="l", pch="", ylab="Elevation [m]",
-xlab="Distance along slope line [m]"))
-with(test.geom, matlines(t(sko),t(hko), t="l", pch=""))
-par(opa)
+<<plotGeom,fig=TRUE, height=4,width=6>>=
+plot.catf.geometry(test.geom, zooming = FALSE, 
+                   ylab="Elevation [m]",
+                   xlab="Distance along slope line [m]")
 @
-\caption{\label{fig:geometry} Model geometry generated with \code{make.geometry()}}
+\caption{\label{fig:geometry} Model geometry generated with \code{make.geometry()} and plotted with \code{plot.catf.geometry()}.}
 \end{center}
 \end{figure}
 
-For further details, see \code{?make.geometry}. For reading the output of the CATLFOW Wizard, see \code{?fromArcGIS}.
+For further details, see \code{?make.geometry}. %For reading the output of the CATLFOW Wizard, see \code{?fromArcGIS}.
 More elaborate examples of generating CATFLOW geometries are given in Section \ref{sec:macro} in combination with the simulation of macropores.
 
 %%%%%             %%%%%%
