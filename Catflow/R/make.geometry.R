@@ -212,7 +212,7 @@ function( # # # produces a geometry file for the CATFLOW code
          return(ya)}
        
         yb <- function (et, typ = htyp,... ){
-            m <- length(et)
+            #m <- length(et)
             if (typ == 1){  yb <- predict (ppyb, xb(et))$y      
             } else if(typ == 2 || typ == 3 ) yb <- et*(diff(range(pyb))) + min(pyb)
          return(yb)}
@@ -840,8 +840,8 @@ function( # # # produces a geometry file for the CATFLOW code
  
  ## flipping matrices for later use (to get first row on top)
  
- res$hko <- res$hko[length(eta):1,]
- res$sko <- res$sko[length(eta):1,]
+ res$hko <- res$hko[rev(seq_along(eta)),]
+ res$sko <- res$sko[rev(seq_along(eta)),]
  
  ## -----------------------------------------------------------------------
 
