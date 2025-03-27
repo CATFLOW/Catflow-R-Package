@@ -43,7 +43,7 @@ export(write.precip)
 export(write.printout)
 export(write.surface.pob)
 export(zoom)
-  importFrom("grDevices", "colorRampPalette", "dev.cur",
+  importFrom("grDevices", "colorRampPalette", "dev.cur", "dev.new",
              "dev.interactive", "dev.off", "pdf", "rainbow", "x11")
   importFrom("graphics", "abline", "image", "legend", "lines", "locator",
              "matlines", "matplot", "matpoints", "par", "plot", "points",
