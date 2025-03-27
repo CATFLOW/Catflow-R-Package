@@ -1,10 +1,12 @@
 % replace CATFLOW with \proglang{CATFLOW}
 % try different classes: book etc -> chapter , but import \pkg \code \proglang
 
+%% put links / references (directly)
+
 \documentclass[article,nojss]{jss}
+%% need no \usepackage{Sweave.sty}
 \DeclareGraphicsExtensions{.pdf,.eps}
 \usepackage[utf8]{inputenc}
-%% need no \usepackage{Sweave.sty}
 
 
 \author{Jan Wienhöfer\\Karlsruhe Institute of Technology}
@@ -33,13 +35,16 @@ been previously available as \proglang{Matlab} code, as well as newly added func
 \begin{document}
 \tableofcontents
 
-\SweaveOpts{engine=R, eps=FALSE, keep.source=TRUE, prefix.string=FIG/CFvig}        
-                                            
-<<start,echo=FALSE,results=hide>>=
-op <- options()
-options(prompt = " ", continue = " ", width=80) #%"R> "
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+engine='R', tidy=FALSE, fig.path='FIG/CFvig'
+)
 require(xtable)
 @
+
+                                            
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% First part %%
@@ -47,41 +52,31 @@ require(xtable)
 \section*{Introduction} 
 \addcontentsline{toc}{section}{Introduction}
 
-\proglang{CATFLOW}  \citep{Maurer+Zehe:2007} is a physically based, distributed model for simulating the dynamics of water and solutes in small rural catchments on the event and season time scale. 
+\proglang{CATFLOW}  is a physically based, distributed model for simulating the dynamics of water and solutes in small rural catchments on the event and season time scale. 
 The \pkg{Catflow} package is a collection of utilities for pre- and postprocessing functionality
 for \proglang{CATFLOW}, 
 written for the \proglang{R} system for statistical computing
-\citep[\url{http://www.R-project.org/}]{R:2009}.
+(\url{http://www.R-project.org/}).
 
-This vignette is intended to serve as an tutorial on how to use the tools of the
+This vignette is intended to serve as a tutorial on how to use the tools of the
 \pkg{Catflow} package, providing a step-by-step example of a (simple) modelling session. 
 For further information on individual functions, please refer to the respective help pages via \code{?NameOfTheFunction}.
 
-The tutorial is organized in two parts.
-
-Part~\ref{sec:preproc} explains how to create \proglang{CATFLOW} models for the simulation of one hillslope:
+The tutorial is organized in three parts:
 \begin{itemize}
-\item generate the model geometry, in terms of a system of curvilinear orthogonal coordinates, starting from a slope profile line (Section~\ref{sec:geometry}, p.~\pageref{sec:geometry}),
-\item write input files that relate to the modelled geometry or time-series which are to be included in the model (Section~\ref{sec:input}, p.~\pageref{sec:input}),
- %  JW put macropores in seperate part
-\item simulate three different types of macropores and prepare an appropriate model geometry (Section~\ref{sec:macro}, p.~\pageref{sec:macro}).
+\item Part~\ref{sec:preproc} explains how to create \proglang{CATFLOW} models for the simulation of one hillslope:
+      \begin{itemize}
+      \item generate the model geometry, in terms of a system of curvilinear orthogonal coordinates, 
+            starting from a slope profile line (Section~\ref{sec:geometry}, p.~\pageref{sec:geometry}),
+      \item write input files that relate to the modelled geometry or time-series 
+            which are to be included in the model (Section~\ref{sec:input}, p.~\pageref{sec:input}),
+       \end{itemize}
+ \item Part~\ref{sec:macro} details how to simulate three different types of macropores and prepare an appropriate model geometry (p.~\pageref{sec:macro}).
+ \item Part~\ref{sec:postproc} provides details on how to extract and visualise the results
+ from \proglang{CATFLOW} simulations.
+ 
 \end{itemize}
-
-Part~\ref{sec:postproc} provides details on how to extract and visualise the results
-from \proglang{CATFLOW} simulations.
-
-To illustrate the usage of \pkg{Catflow}, we first load the package and 
-create a sub-directory within the current working dir, where all the files for our sample CATFLOW session are collected. Here, we use a temporary folder and create a project directory \verb+Catflow-TEST+). The next lines are \proglang{R} code that can be executed after copying to the console:
-  % JW hint on code chunks
-<<prelim>>=
-library("Catflow")
-
-exampledir <- file.path(tempdir(),"Catflow-TEST")                                    # project path in a temporary folder
-if(!file_test("-d", exampledir)) dir.create(exampledir)                              # create directory
-                                                                                     # file path for input directory
-indir <- file.path(exampledir, "in")
-
-@
+ 
 
 
 Please note: \pkg{Catflow} requires the packages  \pkg{deSolve}, \pkg{RColorBrewer}, \pkg{splines}, \pkg{xts}, and \pkg{zoo}, which should be installed automatically together with \pkg{Catflow}. 
@@ -92,11 +87,24 @@ Please note: \pkg{Catflow} requires the packages  \pkg{deSolve}, \pkg{RColorBrew
 \part[Preprocessing for CATFLOW]{Preprocessing for \proglang{CATFLOW}}\label{sec:preproc}
 
 
-\newpage
 This part describes how model geometry and other input files in the specific file formats for \proglang{CATFLOW} can be created.
 
+To illustrate the usage of \pkg{Catflow}, we first load the package and 
+create a sub-directory within the current working dir, where all the files for our sample CATFLOW session are collected. Here, we use a temporary folder and create a project directory \verb+Catflow-TEST+). The next lines are \proglang{R} code that can be executed after copying to the console:
+  % JW hint on code chunks
+<<prelim, results='hide', message=FALSE>>=
+library("Catflow")
+ # example project path, to a temporary folder
+exampledir <- file.path(tempdir(),"Catflow-TEST")   
+ # create directory
+if(!file_test("-d", exampledir)) dir.create(exampledir)                              
+ # file path for input directory
+indir <- file.path(exampledir, "in")
+@
+
+
 \section[CATFLOW model geometry]{\proglang{CATFLOW} model geometry}\label{sec:geometry}
-To generate a \proglang{CATFLOW} model geometry, we need a slope profile line. This could either be obtained from a GIS (Geographic Information System), e.g. using the CATFLOW ArcGIS wizard \citep{Reusser:2006}, or it may be specified manually.       % JW delete ArcGIS, introduce Grass / Lump
+To generate a \proglang{CATFLOW} model geometry, we need a slope profile line. This could either be obtained from a GIS (Geographic Information System), or it may be specified manually.       % JW introduce Grass / Lump
 Suppose we have the following slope line, represented by 20 points and associated values for slope elevation and width of the slope (Fig.~\ref{fig:slopeline}):
 <<slopelineDecl>>=
 # northing of slope line 
@@ -111,7 +119,7 @@ Suppose we have the following slope line, represented by 20 points and associate
 
 \begin{figure}[h!]
 \begin{center}
-<<slopelineFig, fig=TRUE, echo=FALSE, height=5, width=6>>=
+<<slopelineFig, echo=FALSE, fig.height=5, fig.width=6>>=
 opa <- par(mfrow=c(2,1), mar=c(4,4,1,1), lend=1)
 plot(north, east, t="b", xlab="Northing", ylab="Easting", 
       ylim=c(1,9), xlim=c(0.5,11.5))           
@@ -145,26 +153,19 @@ simple.slope <- list( xh = north,
                       out.file="test.geo"      )                    
 @
 
-With this list we are ready to generate a CATFLOW geometry using \code{make.geometry()}, which  produces a text file for CATFLOW (\code{out.file="test.geo"}) in the specified directory (\code{project.path = "Catflow-TEST/in"}), and generates a plot of the geometry (Fig.~\ref{fig:geometry}):
+With this list we are ready to generate a CATFLOW geometry using \code{make.geometry()}, 
+which  produces a text file for CATFLOW (\code{out.file="test.geo"}) in the specified directory (\code{project.path = "Catflow-TEST/in"}):
 
-\begin{Schunk}                      %% JW why Sweave part here?
-\begin{Sinput}
- test.geom <- make.geometry(simple.slope, project.path = indir)
-   
- ## display the produced file ##
- file.show(file.path(exampledir,"test.geo") )             
-                   
-\end{Sinput}
-\end{Schunk}                                            %
-
-
-<<makeGeom,echo=FALSE, results=hide>>=
-  test.geom <- make.geometry(simple.slope, project.path = indir)   ## interactive plotting causes problems, hence separate chunk ## 
+                                  
+<<makeGeom, results='hide'>>=
+  test.geom <- make.geometry(simple.slope, project.path = indir)   
 @ 
 
-\begin{figure}[h!]
+The following command generates a plot of the geometry (Fig.~\ref{fig:geometry})
+
+\begin{figure}[ht]
 \begin{center}
-<<plotGeom,fig=TRUE, height=4,width=6>>=
+<<plotGeom, fig.height=4,fig.width=6>>=
 plot.catf.geometry(test.geom, zooming = FALSE, 
                    ylab="Elevation [m]",
                    xlab="Distance along slope line [m]")
@@ -174,7 +175,7 @@ plot.catf.geometry(test.geom, zooming = FALSE,
 \end{figure}
 
 For further details, see \code{?make.geometry}. %For reading the output of the CATLFOW Wizard, see \code{?fromArcGIS}.
-More elaborate examples of generating CATFLOW geometries are given in Section \ref{sec:macro} in combination with the simulation of macropores.
+More elaborate examples of generating CATFLOW geometries are given in Part \ref{sec:macro} in combination with the simulation of macropores.
 
 %%%%%             %%%%%%
 \newpage
@@ -192,7 +193,7 @@ The \pkg{Catflow} package offers additional possibilities for writing input file
 \end{itemize} 
 
 To obtain a complete file structure for running CATFLOW, some more files are
-created after these using basic \proglang{R} commands, but without using special functionality of the \pkg{Catflow} package. 
+created using basic \proglang{R} commands (Section \ref{sec:otherFiles}), but without using special functionality of the \pkg{Catflow} package. % JW ref to where this happens 
 
 %----------------------------------
 \subsection[Multiplier matrices for K_s and theta_s / Inital conditions]{Multiplier matrices for $K_s$ and $\theta_s$ / Inital conditions} 
@@ -200,37 +201,34 @@ created after these using basic \proglang{R} commands, but without using special
 CATFLOW requires two files with multipliers, one for $K_s$ and one for $\theta_s$. These files can be generated using \code{write.facmat()}, which needs the discretization in terms of \code{eta} and \code{xsi}.
 These are contained in \code{test.geom} from Section~\ref{sec:geometry}, and are made available by attaching \code{test.geom}:
 
-<<facmat,results=hide, echo=FALSE>>=
-
+<<facmat,results='hide'>>=
   attach(test.geom)   # attach the geometry to make 'eta' and 'xsi' available
-  write.facmat(output.file=file.path(indir, "ksmult.dat") )
-  write.facmat(output.file=file.path(indir, "thsmult.dat") )
+  write.facmat(output.file=file.path(indir, "ksmult.dat"), eta, xsi)
+  write.facmat(output.file=file.path(indir, "thsmult.dat"), eta, xsi )
 @
 
 %% same again in "beautiful printing" (with empty lines)
-\begin{Schunk}
-\begin{Sinput}
- attach(test.geom)   # attach the geometry to make 'eta' and 'xsi' available
-    
-# Multipliers for scaling saturated hydraulic conductivity - default: all one
- write.facmat(output.file=file.path(indir, "ksmult.dat"))
- 
- file.show(file.path(indir, "ksmult.dat"))            ## display the produced file ##   
-
-# Dummy multipliers for scaling saturated water content / porosity: always one
- write.facmat(output.file=file.path(indir, "thsmult.dat") )
- 
- file.show(file.path(indir, "thsmult.dat") )          ## display the produced file ##     
-\end{Sinput}
-\end{Schunk}
+%\begin{Schunk}
+%\begin{Sinput}
+ %attach(test.geom)   # attach the geometry to make 'eta' and 'xsi' available
+    %
+%# Multipliers for scaling saturated hydraulic conductivity - default: all one
+ %write.facmat(output.file=file.path(indir, "ksmult.dat"))
+ %
+%# Dummy multipliers for scaling saturated water content / porosity: always one
+ %write.facmat(output.file=file.path(indir, "thsmult.dat") )
+  %
+ %file.show(file.path(indir, "ksmult.dat"))            ## display the produced file ##   
+%\end{Sinput}
+%\end{Schunk}
 
 
 It is also possible to specify non-uniform values -- simply specify \code{fac} as a matrix of appropriate size.  \footnote{Note: CATFLOW currently cannot handle multipliers other than '1' for scaling saturated water content.}
 
 
 The same function may be used to specify initial conditions or soil type identifiers, but for these different header lines are needed:
-<<soilID,results=hide, echo=FALSE>>=
-
+%<<soilID,results=hide, echo=FALSE>>=
+<<soilID,results='hide'>>=
 # Initial conditions: Uniform Psi (0.8 m) 
   write.facmat(output.file=file.path(indir, "soilhyd.ini"),
                headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
@@ -238,29 +236,30 @@ The same function may be used to specify initial conditions or soil type identif
 # Soil type IDs: 
    write.facmat(output.file=file.path(indir, "soils.bod"),
                headr= paste("BODEN",  length(eta), length(xsi), 1),
-               fac = matrix(c(rep(1, ceiling(length(eta)/2)),rep(2,floor(length(eta)/2)) ), 
-                            nrow = length(eta), ncol = length(xsi))  ) 
+               fac = matrix(c(rep(1, ceiling(length(eta)/2)),
+                              rep(2,floor(length(eta)/2)) ), 
+               nrow = length(eta), ncol = length(xsi))  ) 
 @                                     
 
-\begin{Schunk}
-\begin{Sinput}
-# Initial conditions: Uniform Psi (0.8 m) 
-  write.facmat(output.file=file.path(indir, "soilhyd.ini"),
-               headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
-               fac = 0.8)
- 
- file.show(file.path(indir, "soilhyd.ini"))           ## display the produced file ##   
-
-# Soil type IDs: 
-  write.facmat(output.file=file.path(indir, "soils.bod"),
-               headr= paste("BODEN",  length(eta), length(xsi), 1),
-               fac = matrix(c(rep(1, ceiling(length(eta)/2)),
-                              rep(2, floor(length(eta)/2)) ), 
-                            nrow = length(eta), ncol = length(xsi)) ) 
- 
- file.show(file.path(indir, "soils.bod"))             ## display the produced file ##
-\end{Sinput}
-\end{Schunk}
+%\begin{Schunk}
+%\begin{Sinput}
+%# Initial conditions: Uniform Psi (0.8 m) 
+  %write.facmat(output.file=file.path(indir, "soilhyd.ini"),
+               %headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
+               %fac = 0.8)
+ %
+ %file.show(file.path(indir, "soilhyd.ini"))           ## display the produced file ##   
+%
+%# Soil type IDs: 
+  %write.facmat(output.file=file.path(indir, "soils.bod"),
+               %headr= paste("BODEN",  length(eta), length(xsi), 1),
+               %fac = matrix(c(rep(1, ceiling(length(eta)/2)),
+                              %rep(2, floor(length(eta)/2)) ), 
+                            %nrow = length(eta), ncol = length(xsi)) ) 
+ %
+ %file.show(file.path(indir, "soils.bod"))             ## display the produced file ##
+%\end{Sinput}
+%\end{Schunk}
 
 \subsection{Precipitation time series} \label{sec:rain}
 
@@ -270,7 +269,7 @@ at those time steps when they are changing.
 
 The function \code{write.precip()} converts a regular rainfall record, i.e. intensity at uniform time intervals, to the CATFLOW specific format:
 
-<<rain, fig=TRUE, results = HIDE, echo = FALSE, height=4, width=6>>=
+<<rain, results = 'hide', fig.height=4, fig.width=6>>=
 
 # some artificial rainfall record
   raindat <- data.frame("hours" = seq(0,48, by=0.5),
@@ -281,21 +280,6 @@ The function \code{write.precip()} converts a regular rainfall record, i.e. inte
                 start.time= "01.01.2004 00:00:00" )
 @
 
-\begin{Schunk}
-\begin{Sinput}
-# some artificial rainfall record
-  raindat <- data.frame("hours" = seq(0,48, by=0.5),
-                        "precip" = c(rep(0,30), 1, rep(3,4), rep(2,3), 
-                                      rep(0,25), rep(1,4), rep(0,30)) ) 
-  
-  plot(raindat, t="s", ylab="Precip. [mm/h]")
-  
-  write.precip(raindat, file.path(indir, "TEST.rain.dat"), 
-                start.time= "01.01.2004 00:00:00" )
-                                                      
-  file.show(file.path(indir, "TEST.rain.dat"))        ## display the produced file ##            
-\end{Sinput}
-\end{Schunk}
 
 
 %----------------------------------
@@ -306,53 +290,32 @@ The function \code{write.precip()} converts a regular rainfall record, i.e. inte
  
  An example: 
                                                
-<<clima, results=hide, echo=FALSE>>=
+<<clima, results='hide'>>=
 
  climadat <- data.frame(
-              "hours" = seq(0,48, by=0.5),
-              "GlobRad" =  ifelse(0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12) > 0,
-                                  0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12),  0),
-              "NetRad" = NA ,
-              "Temp" = 4 +  sin((seq(0,48, by=0.5) - 12)*pi/12)  ,
-              "RelHum" = 70 + 10* sin((seq(0,48, by=0.5))*pi/12) ,
-              "vWind"  =  rlnorm(97, 0,1) ,
-              "dirWind" = runif(97, 0, 359) 
-              )
+      "hours" = seq(0,48, by=0.5),
+      "GlobRad" =  ifelse(0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12) > 0,
+                          0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12),  0),
+      "NetRad" = NA ,
+      "Temp" = 4 +  sin((seq(0,48, by=0.5) - 12)*pi/12)  ,
+      "RelHum" = 70 + 10* sin((seq(0,48, by=0.5))*pi/12) ,
+      "vWind"  =  rlnorm(97, 0,1) ,
+      "dirWind" = runif(97, 0, 359) 
+      )
  write.climate(climadat, file.path(indir, "TEST.clima.dat"), 
                   start.time= "01.01.2004 00:00:00" )
 @
 
-\begin{Schunk}
-\begin{Sinput}
-# some climate record
- climadat <- data.frame(
-              "hours" = seq(0,48, by=0.5),
-              "GlobRad" =  ifelse(0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12) > 0,
-                                  0 + 800 * sin((seq(0,48, by=0.5) - 8)*pi/12),  0),
-              "NetRad" = NA ,
-              "Temp" = 4 +  sin((seq(0,48, by=0.5) - 12)*pi/12)  ,
-              "RelHum" = 70 + 10* sin((seq(0,48, by=0.5))*pi/12) ,
-              "vWind"  =  rlnorm(97, 0,1) ,
-              "dirWind" = runif(97, 0, 359) 
-              )
- 
- write.climate(climadat, file.path(indir, "TEST.clima.dat"), 
-                          start.time= "01.01.2004 00:00:00" )
-
- file.show(file.path(indir, "TEST.clima.dat"))       ## display the produced file ##   
-\end{Sinput}
-\end{Schunk}
 
 
 %----------------------------------
 \subsection{Printout times} 
            
 To write a file with printout times in the CATFLOW specific
-format, \code{ write.printout()} can be used.
-
+format, \code{ write.printout()} can be used. 
 In the following example, we construct a printout time file for dumping all results (\code{flag = 1}) in intervals of 0.5 h
  
-<<printout>>=
+<<printout, results='hide'>>=
 
  write.printout(output.file =  file.path(indir, "printout.prt"), 
                  start.time = "01.01.2004 00:00:00", 
@@ -372,7 +335,7 @@ produced using \code{write.surface.pob()}.
 In the following example, uniform values of land-use etc. are assigned to the surface nodes 
 in \code{test.geom}, which should be still atttached, and so we can use the lateral discretization vector \code{xsi} directly:
 
-<<surfPob>>=
+<<surfPob, results='hide'>>=
 
    write.surface.pob(output.file =  file.path(indir, "surface.pob"), 
                     xs = xsi, lu = 33, 
@@ -391,44 +354,29 @@ a directory for the output is created.
 
 In the following chunk we create a project control file with the input files that have been generated so far (simulation parameters can take default values here):
 
-<<control, results=hide, echo=FALSE>>=
- write.control(output.file = "TEST.example.in", project.path = exampledir,    
- start.date = "01.01.2004 00:00:00.00", end.date = "03.01.2004 00:00:00",
- slope.in.list = list( slope1 = list( geo.file = "test.geo", soil.file = "soils.bod", 
-                                 ks.fac = "ksmult.dat", ths.fac = "thsmult.dat", 
-                                 macro.file = "profil.mak", cv.file = "cont_vol.cv", 
-                                 ini.file = "soilhyd.ini",print.file = "printout.prt", 
-                                 surf.file = "surface.pob", bc.file = "boundary.rb")) )
-@
-
-\begin{Schunk}
-\begin{Sinput}
- write.control(output.file = "TEST.example.in",   
-               project.path = exampledir, 
+<<control, results='hide'>>=
+ write.control(output.file = "TEST.example.in", 
+               project.path = exampledir,
                start.date = "01.01.2004 00:00:00.00", 
                end.date = "03.01.2004 00:00:00",
-               slope.in.list = list( slope1 = list( 
-                                geo.file = "test.geo", 
-                                soil.file = "soils.bod",
-                                ks.fac = "ksmult.dat", 
-                                ths.fac = "thsmult.dat", 
-                                macro.file = "profil.mak", 
-                                cv.file = "cont_vol.cv", 
-                                ini.file = "soilhyd.ini",
-                                print.file = "printout.prt",                                
-                                surf.file = "surface.pob", 
-                                bc.file = "boundary.rb") 
-                                ) )
-
- file.show(file.path(exampledir, "TEST.example.in") )           ## display the produced file ##
-\end{Sinput}
-\end{Schunk}
+               slope.in.list = list( 
+                slope1 = list( geo.file = "test.geo", 
+                               soil.file = "soils.bod",
+                               ks.fac = "ksmult.dat", 
+                               ths.fac = "thsmult.dat", 
+                               macro.file = "profil.mak", 
+                               cv.file = "cont_vol.cv", 
+                               ini.file = "soilhyd.ini",
+                               print.file = "printout.prt", 
+                               surf.file = "surface.pob", 
+                               bc.file = "boundary.rb")) )
+@
 
 Note that a output directory named 'out' has been added to the current working dir.
 
 
-Now we can write the main control file, which merely contains the name of the project control file:
-<<mainFile,results=hide>>=
+Finally, we need to write the main control file, which merely contains the name of the project control file:
+<<mainFile,results='hide'>>=
  write.CATFLOW.IN(control.files="TEST.example.in", 
                   project.path = exampledir)
 @
@@ -436,7 +384,7 @@ Now we can write the main control file, which merely contains the name of the pr
 
 
 %----------------------------------
-\subsection{Other files} 
+\subsection{Other files}\label{sec:otherFiles}
 
 Some of the files given in the project control file have not been created so far,
 e.g. the hilllslope-specific in the \code{slope.in.list} of \code{write.control()}:
@@ -448,7 +396,7 @@ e.g. the hilllslope-specific in the \code{slope.in.list} of \code{write.control(
  
 To complete the file structure, these are produced with the basic \code{cat} command (of course, you could as well use any text editor to create these files):
  
-<<otherFiles, results=hide, echo=FALSE>>= 
+<<otherFiles, results='hide'>>=
 # macro.file = "profil.mak"
  cat(paste("1  0  2", "ari", "0.00 1.00 0.00 1.00 1  1.00 1.00 ", sep="\n"), 
    file = file.path(indir, "profil.mak")  )
@@ -465,32 +413,13 @@ To complete the file structure, these are produced with the basic \code{cat} com
    file = file.path(indir, "boundary.rb")  )           
 @ 
 
-\begin{Schunk}
-\begin{Sinput}
- # macro.file = "profil.mak"
-  cat(paste("1  0  2", "ari", "0.00 1.00 0.00 1.00 1  1.00 1.00 ", sep="\n"), 
-    file = file.path(indir, "profil.mak")  )
 
-  # cv.file = "cont_vol.cv" 
-   cat(paste("1", "0.8   0.9   0.98   1.0",sep="\n"), 
-     file = file.path(indir, "cont_vol.cv")  )
-  
-  # bc.file = "boundary.rb"
-   cat(paste("L", "1  0", "0. 1. 0",   " ",
-             "R", "1  0", "0. 1. -10", " ",
-             "T", "1  0", "0. 1. -99 "," ",  
-             "B", "1  0", "0. 1. 0",   " ",
-             "S", "1  0", "0. 1. 0. 1. -99",   " ",
-             "M", 0 , sep="\n"),
-     file = file.path(indir, "boundary.rb")  )                  
-\end{Sinput}
-\end{Schunk}
 
 
 The next bunch of files required by CATFLOW are the global simulation files defined in \code{global.in.list} for \code{write.control()}: 
 
 \begin{itemize} 
-<<globalIn, echo=FALSE, results = tex>>=
+<<globalIn, echo=FALSE, results='asis'>>=
   glob.files <-  eval(formals(write.control)$"global.in.list")
   glob.files <-  sapply(glob.files, unclass)[c(4,1,2,3)]
   ID <- names( glob.files) 
@@ -509,7 +438,11 @@ These are created with the following chunks. First we generate the file for the 
 of wind direction sectors:
 
 <<windsec>>=
-  cat(paste("4", "240   0.81", " 50   0.78", " 80   0.97", "220   0.94", sep="\n"),
+  cat(paste("4", 
+            "240   0.81", 
+            " 50   0.78", 
+            " 80   0.97", 
+            "220   0.94", sep="\n"),
   file = file.path(indir, "winddir.def") )
 @
 
@@ -538,90 +471,435 @@ land-use and climate records (see \ref{sec:rain}, \ref{sec:clima}):
            "BC", "0", "", "SINKS","0", "", "SOLUTE", "0", "",
            "LAND-USE", "in/landuse/lu_ts.dat", "", 
            "CLIMATE", "1", "in/TEST.clima.dat", "", sep="\n"),
-  file = file.path(indir, "timeser.def"))                              ## JW check w/o prepDirs
+  file = file.path(indir, "timeser.def"))                            
 @
 
 Finally, we can prepare all the files related to land-use specifications, some of which
 are placed into their own sub-directory:
 
-<<landuse, echo=FALSE, results=hide>>=
+<<landuse, results='hide'>>=
 
-   if(!file_test("-d", file.path(indir, "landuse")) ) dir.create(file.path(indir, "landuse"))
+   if(!file_test("-d", file.path(indir, "landuse"))) {
+    dir.create(file.path(indir, "landuse"))
+    }
 # pointer to land-use parameters
- cat(paste("3", "coniferous forest", "in/landuse/conif.par", sep ="             "),
+ cat(paste("3", "coniferous forest", 
+           "in/landuse/conif.par", 
+           sep = strrep(" ",13)),
    file = file.path(indir, "landuse", "lu_file.def") ) 
+
 # time-series of land-use parameters
  cat(paste("01.01.2004 00:00:00.00", "in/landuse/lu_set1.dat", 
             "01.01.2005 00:00:00.00", sep="\n"), 
   file = file.path(indir, "landuse", "lu_ts.dat") )      
 # parameters of land-use type 'coniferous forest'
  cat(paste(
-      paste("10", "KST", "MAK", "BFI", "BBG", "TWU", "PFH", 
-            "PALB", "RSTMIN", "WP_BFW", "F_BFW", sep= "   "),
-      "0.    3.     1.    5.    0.95   5.0    5.0     0.15    1.    1.      1.",
-      paste(c("1  ","366"), 
-            "2.     1.     1.     1.0   1.0    1.0     1.0   546.    0.05    30.",
-       sep="    ", collapse="\n"), sep="\n"), 
+     paste("10", "KST", "MAK", "BFI", "BBG", "TWU", "PFH", 
+           "PALB", "RSTMIN", "WP_BFW", "F_BFW", sep= "   "),
+     "0.    3.     1.    5.    0.95   5.0    5.0     0.15    1.    1.      1.",
+     paste(c("1  ","366"), 
+     "2.     1.     1.     1.0   1.0    1.0     1.0   546.    0.05    30.",
+     sep="    ", collapse="\n"), 
+    sep="\n"), 
   file = file.path(indir, "landuse", "conif.par") )
 # pointer to surface node attributes
  cat(paste(1, "33  3    %coniferous forest", sep = "\n"),
   file = file.path(indir, "landuse", "lu_set1.dat") )
 @
 
-\begin{Schunk}
-\begin{Sinput}
-  # make subdirectory
-  if(!file_test("-d", file.path(indir, "landuse")) ) dir.create(file.path(indir, "landuse"))
-   
-  # pointer to land-use parameters
-   cat(paste("3", "coniferous forest", "in/landuse/conif.par", sep ="             "),
-     file = file.path(indir, "landuse", "lu_file.def") ) 
-  
-  # time-series of land-use parameters
-   cat(paste("01.01.2004 00:00:00.00", "in/landuse/lu_set1.dat", 
-              "01.01.2005 00:00:00.00", sep="\n"), 
-     file = file.path(indir, "landuse", "lu_ts.dat") )      
-  
-  # parameters of land-use type 'coniferous forest'
-   cat(paste(
-        paste("10", "KST", "MAK", "BFI", "BBG", "TWU", "PFH", 
-              "PALB", "RSTMIN", "WP_BFW", "F_BFW", sep= "   "),
-        "0.    3.     1.    5.    0.95   5.0    5.0     0.15    1.    1.      1.",
-        paste(c("1  ","366"), 
-              "2.     1.     1.     1.0   1.0    1.0     1.0   546.    0.05    30.",
-         sep="    ", collapse="\n"), sep="\n"), 
-      file = file.path(indir, "landuse", "conif.par") )
-  
-  # pointer to surface node attributes
-   cat(paste(1, "33  3    %coniferous forest", sep = "\n"),
-     file = file.path(indir, "landuse", "lu_set1.dat") )
-\end{Sinput}
-\end{Schunk}
+
 
 Now that we have completed the preparation of input files we are ready to run CATFLOW
-on this simple example. First copy \verb+CATFLOW.EXE+ to the trget directory, for example the Catflow exe shipped with the \pkg{Catflow} package directory
+on this simple example. First copy \verb+CATFLOW.EXE+ to the target directory, for from the \pkg{Catflow} package directory, and
 then run the program. To do this within \proglang{R}, type:
-<<runsim, results=hide>>=
- file.copy(from = system.file("Catflow-TEST/CATFLOW.exe", package = "Catflow"),
+<<runsim, results='hide', messages=TRUE>>=
+file.copy(from = system.file("Catflow-TEST/CATFLOW.exe", package = "Catflow"),
            to = exampledir) 
- owd <- setwd(exampledir)                                    # change into dir
- system2("CATFLOW")                                          # run CATFLOW
- setwd(owd)                                                  # change back work dir
+# change into dir
+owd <- setwd(exampledir)                    
+# run CATFLOW
+system2("CATFLOW")                          
+# change back work dir
+setwd(owd)                                  
 @
 
 The simulation results are used in part \ref{sec:postproc} to demonstrate the post-processing facilities of the \pkg{Catflow} package.
 
-%Do not refrain from tidying up:
-%<<tidy1>>=
-%detach(test.geom)
-%@
 
- 
-%%jw%% verweis auf inst directory
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% INCLUDE Macropore Part, or separate doc     # JW
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\part{Simulation of macropores as discrete flowpaths}\label{sec:macro}
+
+The approach to simulate hydraulic effective structures on a given CATFLOW geometry comprises 
+i) the generation of a simulation grid in the desired spatial resolution of the macroporous
+structures, ii) the actual simulation of macropores, iii) refinement of the discretization of 
+simulation nodes and generation of a CATFLOW geometry file, and iv) representation of the 
+simulated macropores as grids for defining "macroporous soil types" or multipliers for 
+scaling hydraulic conductivities.  
+
+Three functions are available for the simulation of macroporous structures, and these  are 
+complemented with functions for creating a model discretization:
+ 
+ \begin{itemize}
+\item{\code{sim.mak()} and \code{discretize.mak()}: }{Vertical, tortuous structures}
+\item{\code{sim.pipe()} and \code{discretize.pipe()}: }{Horizontal, tortuous structures}
+\item{\code{sim.rectmak()} and \code{discretize.rect()}: }{Connected structures}
+\end{itemize}
+
+
+\section{Simple example for the simulation of macropores}\label{simplemacro}
+The first step is to generate a simulation grid in fine resolution with the function \code{make.simgrid()}.
+Let us resume the example from above and produce a simulation grid for the same slope line (the column names in \code{test.slope} are for illustration purposes only):
+
+<<simgrd>>=
+ test.slope <- data.frame( north = simple.slope$xh,
+                           east = simple.slope$yh,
+                           elev = simple.slope$zh,
+                           slope.width = simple.slope$zh)
+ 
+ test.sim.grid <- make.simgrid(test.slope, 
+                               prof.depth = 2, 
+                               dx.max=0.1, 
+                               dz.max = 0.1)
+@
+
+
+The spatial resolution of the resulting grid is determined by the desired maximal resolution and the 
+length of the profile; in this case the horizontal resolution is 0.0997 m instead of the desired 0.1 m.
+
+
+Let us now simulate some vertical structures with \code{sim.mak()} 
+and visualize the results with \code{plot.macros()} (Fig. \ref{fig:macsim1}):
+
+
+
+\begin{figure}[h]
+\begin{center}
+<<macsim1, fig.height=4,fig.width=6, results='hide'>>=
+  set.seed(2011)
+ 
+ sim1 <- with(test.sim.grid, 
+              sim.mak(xnew, 
+                      znew, 
+                      width, 
+                      ksmean=2.5e-6, 
+                      kmacro=1.33e-5, 
+                      x.step=10)
+ )
+ 
+ with(test.sim.grid, 
+      plot.macros(xnew, znew, sim1[[1]])
+ )
+
+@
+\caption{\label{fig:macsim1} Schematic of slope line and simulated vertical macropores}
+\end{center}
+\end{figure}
+
+\clearpage
+Note that the grid \code{sim1} holds scaling factors of "1" for non-macroporous simulation 
+nodes, while 
+macropores have values above 1. Depending on the simulated number of macropores at a certain
+simulation node there can be different scaling factors for macropores. In the case of 
+\code{sim1}, the scaling factors are distributed as follows:
+
+<<results='hide'>>=
+ table(round(as.vector(sim1[[1]]), 2))
+@
+% 'silent chunk' for a pretty table in Latex
+<<results='asis', echo=FALSE>>=
+  sf_table <- table(round(as.vector(sim1[[1]]), 2))
+  sf_table <- data.frame(  sf_table )   
+  colnames(sf_table)  <- c("Scaling factor","No. of nodes" ) 
+  print(xtable(sf_table, align=c("l","l","r")),include.rownames=FALSE)
+  rm(sf_table)
+@ 
+
+The simulated scaling factors may be directly used as scaling factors for saturated
+hydraulic conductivity after calculating a respective model discretization
+and adjusting the grid dimensions; or the simulated structures may be used to define
+different soil-types for matrix and macropores, as demonstrated further below.
+
+
+The next step is to determine an appropriate model discretization to decrease the 
+number of simulation nodes in the fine simulation grid.  
+To keep the resolution fine around the macropores and make it more coarse in between, 
+we apply the function \code{discretize.mak()} on the simulated macropore geometry:
+
+
+
+Figure \ref{fig:discr_macsim1} shows the resulting discretization, which is fine vertically
+around the macropores, and fine at the top and around the endings of the macropores
+horizontally. 
+
+\begin{figure}[h]
+\begin{center}
+<<discretsim1,  fig.height=4, fig.width=6>>=
+ disc.sim1 <- with(test.sim.grid, 
+                   discretize.mak(
+                    sim1, 
+                    maxdists = c(4,2), 
+                    plot=T)
+ )
+@
+\caption{\label{fig:discr_macsim1} Schematic of discretization around simulated vertical macropores}
+\end{center}
+\end{figure}
+
+\clearpage
+
+With this discretization in terms of eta and xsi-vectors the corresponding geo-file for
+\proglang{CATFLOW} can be generated:
+
+<<sim1geo, results='hide'>>=
+  sim1.slope <- list(
+        xh = test.slope$east,
+        yh = test.slope$north,
+        zh = test.slope$elev,
+        bh  = test.slope$slope.width,
+        tot.area = 12 ,
+        numh = 1,
+        htyp = 1,
+        dyy = 2,
+        xsi = disc.sim1[["xsi"]],
+        eta = disc.sim1[["eta"]],
+        out.file="sim1.geo"      )
+
+  sim1.geom <-  make.geometry(sim1.slope, project.path= "Catflow-TEST/in/")
+@
+
+
+In order to complete the generation of input files for this model setup, we need to define
+the respective grids and soil type definitions for the simulated macropore geometry, which
+will differ in the dimensions of the grid for each simulated macropore structure.
+Towards this end we can make use of some of the functions that were already introduced in 
+Section \ref{sec:input}.
+<<sim1input, results='hide'>>=
+  attach(sim1.slope)
+  
+  # Multiplier grids (here all one)
+  write.facmat(output.file="Catflow-TEST/in/thsmult_sim1.dat")
+  write.facmat(output.file="Catflow-TEST/in/ksmult_sim1.dat")
+    
+  # initial conditions: soilhyd.ini (Psi or Theta or earlier simulation)
+   write.facmat(output.file="Catflow-TEST/in/soil_hyd_sim1.ini",
+                headr=paste("PSI   ", 0,  1, length(eta), length(xsi), numh),
+                fac = 0.8)
+    
+  # surface nodes (length xsi)
+    write.surface.pob(output.file="Catflow-TEST/in/surface_sim1.pob", lu=33 )
+  
+  detach(sim1.slope)  
+@      
+
+
+For the assignment of different soil types for matrix and macropores (or for scaling 
+hydraulic conductivity), we need a grid with the dimension of eta and xsi that indicates the
+positions of macroporous nodes. This grid can be calculated from the simulated macropores in fine resolution and the new discretization using \code{mac.grid()}:
+
+<<macgrid>>=
+  sim1.grid <- mac.grid(relfak = sim1[[1]], 
+                         xnew = test.sim.grid$xnew, 
+                          znew = test.sim.grid$znew,
+                           xsi_new = disc.sim1[["xsi"]], 
+                            eta_new = disc.sim1[["eta"]],
+                             plottin = FALSE)
+@
+
+
+In this case we want to assign different soil types for macropores and matrix.
+This is achieved by
+applying \code{assign.mac.soil()} on the \code{sim1.grid}. We will here define the soil
+matrix as soil type "1" and the macropores as a soil type "3":
+<<assignmacsoil, results='hide'>>=
+  # soil types (nodewise)
+  assign.mac.soil(sim1.grid, output.file="Catflow-TEST/in/soilnodes_sim1.bod",
+                  soil.macro = 3, thresh = 0.9)
+@   
+
+
+Of course, we will have to add the definition of soil type "3" to the soil type definition
+file (repeating the first two entries from above):
+
+<<macrosoiltype>>=
+ cat(paste(
+      "3", "1 Loamy Sand, porosity 0.55, bulk dens 1 g/cm3",
+      "1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1.",           
+      "4.05e-5  0.55 0.06 12.40 2.28 -6.00 8.00 1000.00 0.80",
+      "0. 0. 0.", "0. 0. 0.", "0. 0. 0.", 
+      "2 Sandy Clay Loam (30% S, 40 % U; 30 % T)",
+      "1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1.",
+      "3.42e-6 0.48 0.08 0.96 1.5 -6.00 8.00 1200.00 0.80",
+      "0. 0. 0.", "0. 0. 0.", "0. 0. 0.",
+      "3 Poremedium",
+      "1 800 1.00 1.00 0.11 0.50 0.34 0.11 20.00 0.70 0.05 1. 1. 1.",
+      "1.5e-4 0.4 0.057 11.4 2.28 -4.00 4.00 1600.00 0.80",
+      "0. 0. 0.", "0. 0. 0.", "0. 0. 0.", sep="\n") ,
+  file = "Catflow-TEST/in/soils.def")       
+@
+
+
+The other input files, e.g., for climate or land-use, can be left unchanged from the 
+first example in Section \ref{sec:input}, so only the main control file 
+\footnote{Please note that this main control file overwrites the one created in Section \ref{sec:input}!} 
+and project control file with the respective output directory remain to be created:
+
+<<sim1control, results='hide'>>=
+ # project control file,  default input.path="in"    
+    write.control("TEST.sim1.in",  
+        output.path= "sim1out",
+        project.path = "Catflow-TEST", 
+        slope.in.list = list(
+          slope1 = list(       
+              geo.file= "sim1.geo"            ,  # slope geometry     
+              soil.file= "soilnodes_sim1.bod" ,  # soil type assignment
+              ks.fac = "ksmult_sim1.dat"      ,  # multipliers for Ks
+              ths.fac = "thsmult_sim1.dat"    ,  # multipliers for theta_s 
+              macro.file = "profil.mak"    ,     # macropore multipliers
+              cv.file = "cont_vol.cv"      ,     # control volumes
+              ini.file = "soil_hyd_sim1.ini",    # initial conditions (theta/psi)
+              print.file = "printout.prt"  ,     # printout times
+              surf.file = "surface_sim1.pob",    # surface attributes
+              bc.file = "boundary.rb"            # boundary conditions
+              ) ))                   
+
+ # main control file
+ write.CATFLOW.IN("TEST.sim1.in", project.path = "Catflow-TEST")
+@
+
+Now CATFLOW can be run on this geometry with simulated macropores. The input files will be 
+taken from the "Catflow-TEST/in" subdirectory, while the results will be collected in the "Catflow-TEST/sim1out" 
+subdirectory.
+
+
+\clearpage
+                                                                 
+\subsection{Advanced example for simulation of macropores}
+
+As briefly indicated in the rather simple example above, the \pkg{Catflow} package offers 
+various possibilites to produce model geometries with structural heterogeneity.    
+In the following it will be described how the three approaches for the simulation of 
+macroporous structures can be combined in order to build up more complex structures.
+
+The idea is to subsequently apply the functions \code{sim.mak()}, \code{sim.pipe} or 
+\code{sim.rect}; eventually with different function arguments. As an example, let us 
+combine the simulation of vertical macropores from Section \ref{simplemacro} 
+with a simulation of horizontal macropores using \code{sim.pipe} on the simulation grid 
+defined above, \code{test.sim.grid()}. Here we re not attaching the slope data again, but use \code{with()} to pass the slope data (xnew, znew) to the function:
+
+<<simmacro2>>=
+  set.seed(2011)
+  sim2 <- with(test.sim.grid, 
+               sim.pipe(
+                  relfak = sim1[[1]], 
+                  xnew, znew, 
+                  ml = 8,  
+                  start.depth=1, p.up =0.1, p.down=0, x.step=5)
+  )                    
+@
+
+
+The resulting structures are plotted with \code{plot.macros()} (Fig. \ref{fig:macsim2}):
+
+\begin{figure}[h]
+\begin{center}
+<<discretsim2, fig.height=4, fig.width=6>>=
+with(test.sim.grid, 
+      plot.macros(xnew, znew, sim2[[1]]) 
+)
+      
+@
+\caption{\label{fig:macsim2} Schematic of slope line and combination of simulated vertical
+and horizontal macropores}
+\end{center}
+\end{figure}
+
+
+The grid \code{sim2} holds all of the simulated scaling factors and has the fine spatial 
+resolution of the simulation grid. 
+
+The next step is to determine a appropriate model discretization with
+a reduced number of nodes. In the case of combined macropore simulations, the discretization 
+functions are applied subsequently on each simulation result (Fig. \ref{fig:inddiscret}), and the resulting eta- and xsi-vectors
+are combined. When doing this, care must be taken not to duplicate 
+the regular nodes that are inserted at regular distances, which therefore are only introduced 
+in the first discretization \code{disc.sim1} (same as above). The combined vectors need to be sorted and have duplicates removed. Note: Care should be taken to which digit the vectors are rounded - the idea is to remove eta / xsi-values that are so close to each other that they represent the same node. This closeness depends on how fine the discretization and how long the slope is, so the number of digits might need adaptation.
+
+\begin{figure}[h]
+\begin{center}
+<<combdiscret>>=
+ layout(1:2);
+ 
+ disc.sim1 <- discretize.mak(sim1, maxdists = c(4,2), plot=T) 
+ disc.sim2 <- discretize.pipe(sim2, plot=T, reg=F)  
+    
+ disc.sim2[["xsi"]] <- sort(unique(round(c(disc.sim1[["xsi"]], 
+                                           disc.sim2[["xsi"]]), 3)))
+ disc.sim2[["eta"]] <- sort(unique(round(c(disc.sim1[["eta"]], 
+                                           disc.sim2[["eta"]]),2)) )
+@
+\caption{\label{fig:inddiscret} Individual model discretizations for \code{sim1} (top) and \code{sim2} (bottom).}
+\end{center}
+\end{figure}
+
+
+To visualize the combined discretization vectors, the following code chunk can be used:
+
+\begin{figure}[h]
+\begin{center}
+<<plotcombdiscret>>=
+ ## Plot discretization "by hand"
+  plot(0:1,0:1,t="n", ann=F)
+   abline(v=disc.sim2[["xsi"]], col=8)
+   abline(h = c(0,1) )
+   abline(h= disc.sim2[["eta"]], col=3)
+   image(t(sim1[[1]]>1)[,nrow(sim1[[1]]):1], col=0:1, add=T)
+   image(t(sim2[[1]]>1)[,nrow(sim2[[1]]):1], col=0:1, add=T)
+@
+\caption{\label{fig:combineddiscret} Combined model discretizations for \code{sim1} and \code{sim2}.}
+\end{center}
+\end{figure}
+
+
+From here on, the approach proceeds as described in Section \ref{simplemacro}.
+The next step would thus be the definition of a slope list with the slope line and the new model discretization:
+
+<<eval = FALSE>>=
+  sim2.slope <- list(
+        xh = test.slope$east,
+        yh = test.slope$north,
+        zh = test.slope$elev,
+        bh  = test.slope$slope.width,
+        tot.area = 12 ,
+        numh = 1,
+        htyp = 1,
+        dyy = 2,
+        xsi = disc.sim2[["xsi"]],
+        eta = disc.sim2[["eta"]],
+        out.file="sim2.geo"      )
+
+  sim2.geom <-  make.geometry(sim2.slope, project.path= "Catflow-TEST/in/")
+@                   
+
+
+A grid that indicates the positions of macropres is generated with \code{ mac.grid()}:
+<<macgrid2>>=
+  sim2.grid <- mac.grid(relfak = sim2[[1]], 
+                         xnew = test.sim.grid$xnew, 
+                          znew = test.sim.grid$znew,
+                           xsi_new = disc.sim2[["xsi"]], 
+                            eta_new = disc.sim2[["eta"]],
+                             plottin = T)
+@
+
+The remaining steps would be the definition of control files, multiplier grids, surface 
+attributes and the assignment of soil types in the same manner as described above.
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -638,7 +916,7 @@ This part describes how the result files from \proglang{CATFLOW} simulations can
 
 By inspection of the output directory of the first example, we notice that some of 
 the files produced by CATFLOW are not really useful:
-<<outdir, width=5>>=
+<<outdir, fig.width=5>>=
 print(dir(file.path(exampledir, "out")))
 
 @
@@ -700,11 +978,14 @@ Further functions include:
 \end{itemize}
 The latter two functions are also used in the visualisation routines.
 
+
+
+
 \clearpage
 \section*{End of tutorial}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 A few things are left to tidy-up at the end of this tutorial session: 
-<<ending, results=hide>>=
+<<ending, results='hide'>>=
 try(detach(test.geom), silent=TRUE)  # detach test geometry object
 options(op)                          # reset options
 @
@@ -714,7 +995,7 @@ options(op)                          # reset options
 
 The results in this vignette were obtained using the package 
 \pkg{Catflow} \Sexpr{gsub("-", "--", packageDescription("Catflow")$Version)},
-with \proglang{R} \Sexpr{paste(R.Version()[6:7], collapse = ".")} and the packages
+with \Sexpr{R.Version()$version.string} and the packages
 \pkg{deSolve} \Sexpr{gsub("-", "--", packageDescription("deSolve")$Version)},
 \pkg{RColorBrewer} \Sexpr{gsub("-", "--", packageDescription("RColorBrewer")$Version)},
 \pkg{splines} \Sexpr{gsub("-", "--", packageDescription("splines")$Version)},
@@ -726,7 +1007,35 @@ with \proglang{R} \Sexpr{paste(R.Version()[6:7], collapse = ".")} and the packag
 CRAN at \url{http://CRAN.R-project.org/}.
 
 
-\bibliography{catflow}
+%%% Hardcoded bibliography to get rid of bib file
+
+%\begin{thebibliography}{3}
+%\newcommand{\enquote}[1]{``#1''}
+%\providecommand{\natexlab}[1]{#1}
+%\providecommand{\url}[1]{\texttt{#1}}
+%\providecommand{\urlprefix}{URL }
+%\expandafter\ifx\csname urlstyle\endcsname\relax
+  %\providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  %\providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  %\urlstyle{rm}\Url}\fi
+%\providecommand{\eprint}[2][]{\url{#2}}
+%
+%\bibitem[{Maurer and Zehe(2007)}]{Maurer+Zehe:2007}
+%Maurer T, Zehe E (2007).
+%\newblock \emph{CATFLOW User Guide and Program Documentation (Version
+  %Catstat)}.
+%\newblock
+  %\urlprefix\url{http://www.experimental-hydrology.net/models/index.php?title=Catflow_-_Manual}.
+%
+%\bibitem[{{\proglang{R} Development Core Team}(2009)}]{R:2009}
+%{\proglang{R} Development Core Team} (2009).
+%\newblock \emph{\proglang{R}: {A} Language and Environment for Statistical
+  %Computing}.
+%\newblock \proglang{R} Foundation for Statistical Computing, Vienna, Austria.
+%\newblock {ISBN} 3-900051-07-0, \urlprefix\url{http://www.R-project.org/}.
+%
+%
+%\end{thebibliography}
 
 
 
