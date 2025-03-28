@@ -9,7 +9,7 @@ Writes a file specifying the attributes of the surface nodes for a CATFLOW simul
 }
 \usage{
 write.surface.pob(output.file = "surface.pob", 
-                  xs = xsi, lu = 33, precid = 1, climid = 1, 
+                  xsi, lu = 33, precid = 1, climid = 1, 
                   windid = rep(1, 4), headr)
 }
 
@@ -17,8 +17,8 @@ write.surface.pob(output.file = "surface.pob",
   \item{output.file}{
 Name of file to produce
 }
-  \item{xs}{
-Lateral discretization of slope profile (vector)
+  \item{xsi}{
+Lateral discretization of slope profile (vector). 
 }
   \item{lu}{
 Land-use ID:  either a single number to be assigned to all surface nodes, 
