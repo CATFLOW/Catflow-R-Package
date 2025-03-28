@@ -10,7 +10,7 @@ Examples of values are multipliers to scale saturated hydraulic conductivity,
 or initial conditions in terms of matric potential or soil moisture.
 }
 \usage{
-write.facmat <- function(output.file, eta, xsi, header = NULL, numh = 1, fac = 1)
+write.facmat(output.file, eta, xsi, header = NULL, numh = 1, fac = 1)
 }
 
 \arguments{
@@ -23,11 +23,11 @@ Vertical discretization of slope profile (eta vector)
   \item{xsi}{
 Lateral discretization of slope profile (xsi vector)
 }
+  \item{header}{
+Header/First line in output file. Defaults to "paste(-1000-numh, length(eta), length(xsi))".
+}
   \item{numh}{
 ID of hillslope (integer)
-}
-  \item{headr}{
-Header/First line in output file. Defaults to "paste(-1000-numh, length(eta), length(xsi))".
 }
   \item{fac}{
 Value that is to be assigned to all nodes. Either a single number, or a matrix of dimensions dim(fac) = c(length(et), length(xs)). 
@@ -67,7 +67,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
   # Initial conditions: Uniform Psi (soilhyd.ini)
   write.facmat(output.file="soilhyd.ini",
                 eta=eta, xsi=xsi, numh=1, 
-                headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
+                header=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
                 fac = 0.8)
 
   file.show("soilhyd.ini")

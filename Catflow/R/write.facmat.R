@@ -33,7 +33,7 @@ write.facmat <- function(output.file, eta, xsi, header = NULL, numh = 1, fac = 1
     on.exit(close(con), add = TRUE)  # Ensure the file is closed on exit
     write(header, con)
     write.table(format(factor_matrix), con, row.names = FALSE, col.names = FALSE, quote = FALSE)
-    message(sprintf("Generated file: %s", output.file))
+    message(sprintf("Generated file: %s", basename(output.file)))
   }
 
   # Return the matrix invisibly
