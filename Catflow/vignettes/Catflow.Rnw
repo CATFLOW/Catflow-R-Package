@@ -1,5 +1,6 @@
-% replace CATFLOW with \proglang{CATFLOW}
-% try different classes: book etc -> chapter , but import \pkg \code \proglang
+%\VignetteEngine{knitr::knitr} 
+%\VignetteEncoding{UTF-8} 
+
 
 %% put links / references (directly)
 
@@ -154,7 +155,7 @@ simple.slope <- list( xh = north,
 @
 
 With this list we are ready to generate a CATFLOW geometry using \code{make.geometry()}, 
-which  produces a text file for CATFLOW (\code{out.file="test.geo"}) in the specified directory (\code{project.path = "Catflow-TEST/in"}):
+which  produces a text file for CATFLOW (\code{out.file="test.geo"}) in the specified directory (\code{project.path = indir}):
 
                                   
 <<makeGeom, results='hide'>>=
@@ -201,10 +202,10 @@ created using basic \proglang{R} commands (Section \ref{sec:otherFiles}), but wi
 CATFLOW requires two files with multipliers, one for $K_s$ and one for $\theta_s$. These files can be generated using \code{write.facmat()}, which needs the discretization in terms of \code{eta} and \code{xsi}.
 These are contained in \code{test.geom} from Section~\ref{sec:geometry}, and are made available by attaching \code{test.geom}:
 
-<<facmat,results='hide'>>=
+<<facmat,results='hide', message=FALSE>>=
   attach(test.geom)   # attach the geometry to make 'eta' and 'xsi' available
   write.facmat(output.file=file.path(indir, "ksmult.dat"), eta, xsi)
-  write.facmat(output.file=file.path(indir, "thsmult.dat"), eta, xsi )
+  write.facmat(output.file=file.path(indir, "thsmult.dat"), eta, xsi)
 @
 
 %% same again in "beautiful printing" (with empty lines)
@@ -227,39 +228,22 @@ It is also possible to specify non-uniform values -- simply specify \code{fac} a
 
 
 The same function may be used to specify initial conditions or soil type identifiers, but for these different header lines are needed:
-%<<soilID,results=hide, echo=FALSE>>=
-<<soilID,results='hide'>>=
+<<soilID,results='hide', message=F>>=
 # Initial conditions: Uniform Psi (0.8 m) 
-  write.facmat(output.file=file.path(indir, "soilhyd.ini"),
-               headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
+  write.facmat(output.file=file.path(indir, "soilhyd.ini"), 
+               eta, xsi,
+               header=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
                fac = 0.8)
 # Soil type IDs: 
    write.facmat(output.file=file.path(indir, "soils.bod"),
-               headr= paste("BODEN",  length(eta), length(xsi), 1),
+               header= paste("BODEN",  length(eta), length(xsi), 1),
+               eta, xsi,
                fac = matrix(c(rep(1, ceiling(length(eta)/2)),
                               rep(2,floor(length(eta)/2)) ), 
                nrow = length(eta), ncol = length(xsi))  ) 
 @                                     
 
-%\begin{Schunk}
-%\begin{Sinput}
-%# Initial conditions: Uniform Psi (0.8 m) 
-  %write.facmat(output.file=file.path(indir, "soilhyd.ini"),
-               %headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
-               %fac = 0.8)
- %
- %file.show(file.path(indir, "soilhyd.ini"))           ## display the produced file ##   
-%
-%# Soil type IDs: 
-  %write.facmat(output.file=file.path(indir, "soils.bod"),
-               %headr= paste("BODEN",  length(eta), length(xsi), 1),
-               %fac = matrix(c(rep(1, ceiling(length(eta)/2)),
-                              %rep(2, floor(length(eta)/2)) ), 
-                            %nrow = length(eta), ncol = length(xsi)) ) 
- %
- %file.show(file.path(indir, "soils.bod"))             ## display the produced file ##
-%\end{Sinput}
-%\end{Schunk}
+
 
 \subsection{Precipitation time series} \label{sec:rain}
 
@@ -338,7 +322,7 @@ in \code{test.geom}, which should be still atttached, and so we can use the late
 <<surfPob, results='hide'>>=
 
    write.surface.pob(output.file =  file.path(indir, "surface.pob"), 
-                    xs = xsi, lu = 33, 
+                    xsi, lu = 33, 
                     windid = rep(1,4))  
 @  
  
@@ -511,16 +495,16 @@ are placed into their own sub-directory:
 
 Now that we have completed the preparation of input files we are ready to run CATFLOW
 on this simple example. First copy \verb+CATFLOW.EXE+ to the target directory, for from the \pkg{Catflow} package directory, and
-then run the program. To do this within \proglang{R}, type:
-<<runsim, results='hide', messages=TRUE>>=
+then run the program in the target directory. To do this within \proglang{R}, type:
+<<runsim, results='hide', message=TRUE>>=
 file.copy(from = system.file("Catflow-TEST/CATFLOW.exe", package = "Catflow"),
            to = exampledir) 
-# change into dir
-owd <- setwd(exampledir)                    
+# changing into dir where CATFLOW should be executed
+old.wd <- setwd(exampledir)                    
 # run CATFLOW
-system2("CATFLOW")                          
+system2(file.path(exampledir, "CATFLOW") )                         
 # change back work dir
-setwd(owd)                                  
+setwd(old.wd )                                  
 @
 
 The simulation results are used in part \ref{sec:postproc} to demonstrate the post-processing facilities of the \pkg{Catflow} package.
@@ -580,7 +564,7 @@ and visualize the results with \code{plot.macros()} (Fig. \ref{fig:macsim1}):
 \begin{figure}[h]
 \begin{center}
 <<macsim1, fig.height=4,fig.width=6, results='hide'>>=
-  set.seed(2011)
+ set.seed(2011)
  
  sim1 <- with(test.sim.grid, 
               sim.mak(xnew, 
@@ -589,11 +573,11 @@ and visualize the results with \code{plot.macros()} (Fig. \ref{fig:macsim1}):
                       ksmean=2.5e-6, 
                       kmacro=1.33e-5, 
                       x.step=10)
- )
+              )
  
  with(test.sim.grid, 
       plot.macros(xnew, znew, sim1[[1]])
- )
+    )
 
 @
 \caption{\label{fig:macsim1} Schematic of slope line and simulated vertical macropores}
@@ -644,7 +628,7 @@ horizontally.
                     sim1, 
                     maxdists = c(4,2), 
                     plot=T)
- )
+                   )        
 @
 \caption{\label{fig:discr_macsim1} Schematic of discretization around simulated vertical macropores}
 \end{center}
@@ -669,7 +653,8 @@ With this discretization in terms of eta and xsi-vectors the corresponding geo-f
         eta = disc.sim1[["eta"]],
         out.file="sim1.geo"      )
 
-  sim1.geom <-  make.geometry(sim1.slope, project.path= "Catflow-TEST/in/")
+  sim1.geom <-  make.geometry(sim1.slope, project.path= indir, 
+                              out.file = "sim1.geo")
 @
 
 
@@ -678,20 +663,22 @@ the respective grids and soil type definitions for the simulated macropore geome
 will differ in the dimensions of the grid for each simulated macropore structure.
 Towards this end we can make use of some of the functions that were already introduced in 
 Section \ref{sec:input}.
-<<sim1input, results='hide'>>=
+<<sim1input, results='hide', message=FALSE>>=
   attach(sim1.slope)
   
   # Multiplier grids (here all one)
-  write.facmat(output.file="Catflow-TEST/in/thsmult_sim1.dat")
-  write.facmat(output.file="Catflow-TEST/in/ksmult_sim1.dat")
-    
+  write.facmat(output.file=file.path(indir,"thsmult_sim1.dat"), eta, xsi)
+  write.facmat(output.file=file.path(indir,"ksmult_sim1.dat"), eta, xsi)
+ 
   # initial conditions: soilhyd.ini (Psi or Theta or earlier simulation)
-   write.facmat(output.file="Catflow-TEST/in/soil_hyd_sim1.ini",
-                headr=paste("PSI   ", 0,  1, length(eta), length(xsi), numh),
-                fac = 0.8)
+  write.facmat(output.file=file.path(indir,"soil_hyd_sim1.ini"),
+               eta, xsi,
+               header=paste("PSI   ", 0,  1, length(eta), length(xsi), numh),
+               fac = 0.8)
     
   # surface nodes (length xsi)
-    write.surface.pob(output.file="Catflow-TEST/in/surface_sim1.pob", lu=33 )
+    write.surface.pob(output.file=file.path(indir,"surface_sim1.pob"), 
+                      xsi, lu=33)
   
   detach(sim1.slope)  
 @      
@@ -717,8 +704,10 @@ applying \code{assign.mac.soil()} on the \code{sim1.grid}. We will here define t
 matrix as soil type "1" and the macropores as a soil type "3":
 <<assignmacsoil, results='hide'>>=
   # soil types (nodewise)
-  assign.mac.soil(sim1.grid, output.file="Catflow-TEST/in/soilnodes_sim1.bod",
-                  soil.macro = 3, thresh = 0.9)
+  assign.mac.soil(sim1.grid, 
+                  output.file=file.path(indir,"soilnodes_sim1.bod"),
+                  soil.macro = 3, 
+                  thresh = 0.9)
 @   
 
 
@@ -739,7 +728,7 @@ file (repeating the first two entries from above):
       "1 800 1.00 1.00 0.11 0.50 0.34 0.11 20.00 0.70 0.05 1. 1. 1.",
       "1.5e-4 0.4 0.057 11.4 2.28 -4.00 4.00 1600.00 0.80",
       "0. 0. 0.", "0. 0. 0.", "0. 0. 0.", sep="\n") ,
-  file = "Catflow-TEST/in/soils.def")       
+  file = file.path(indir,"soils.def") )      
 @
 
 
@@ -749,26 +738,26 @@ first example in Section \ref{sec:input}, so only the main control file
 and project control file with the respective output directory remain to be created:
 
 <<sim1control, results='hide'>>=
- # project control file,  default input.path="in"    
-    write.control("TEST.sim1.in",  
-        output.path= "sim1out",
-        project.path = "Catflow-TEST", 
-        slope.in.list = list(
-          slope1 = list(       
-              geo.file= "sim1.geo"            ,  # slope geometry     
-              soil.file= "soilnodes_sim1.bod" ,  # soil type assignment
-              ks.fac = "ksmult_sim1.dat"      ,  # multipliers for Ks
-              ths.fac = "thsmult_sim1.dat"    ,  # multipliers for theta_s 
-              macro.file = "profil.mak"    ,     # macropore multipliers
-              cv.file = "cont_vol.cv"      ,     # control volumes
-              ini.file = "soil_hyd_sim1.ini",    # initial conditions (theta/psi)
-              print.file = "printout.prt"  ,     # printout times
-              surf.file = "surface_sim1.pob",    # surface attributes
-              bc.file = "boundary.rb"            # boundary conditions
-              ) ))                   
+# project control file,  default input.path="in"    
+write.control("TEST.sim1.in",  
+  output.path= "sim1out",
+  project.path = exampledir, 
+  slope.in.list = list(
+    slope1 = list(       
+      geo.file= "sim1.geo"            ,  # slope geometry     
+      soil.file= "soilnodes_sim1.bod" ,  # soil type assignment
+      ks.fac = "ksmult_sim1.dat"      ,  # multipliers for Ks
+      ths.fac = "thsmult_sim1.dat"    ,  # multipliers for theta_s 
+      macro.file = "profil.mak"    ,     # macropore multipliers
+      cv.file = "cont_vol.cv"      ,     # control volumes
+      ini.file = "soil_hyd_sim1.ini",    # initial conditions (theta/psi)
+      print.file = "printout.prt"  ,     # printout times
+      surf.file = "surface_sim1.pob",    # surface attributes
+      bc.file = "boundary.rb"            # boundary conditions
+      )))                   
 
  # main control file
- write.CATFLOW.IN("TEST.sim1.in", project.path = "Catflow-TEST")
+ write.CATFLOW.IN("TEST.sim1.in", project.path = exampledir)
 @
 
 Now CATFLOW can be run on this geometry with simulated macropores. The input files will be 
@@ -882,12 +871,12 @@ The next step would thus be the definition of a slope list with the slope line a
         eta = disc.sim2[["eta"]],
         out.file="sim2.geo"      )
 
-  sim2.geom <-  make.geometry(sim2.slope, project.path= "Catflow-TEST/in/")
+  sim2.geom <-  make.geometry(sim2.slope, project.path= indir)
 @                   
 
 
 A grid that indicates the positions of macropres is generated with \code{ mac.grid()}:
-<<macgrid2>>=
+<<macgrid2, fig.height=4, fig.width=6>>=
   sim2.grid <- mac.grid(relfak = sim2[[1]], 
                          xnew = test.sim.grid$xnew, 
                           znew = test.sim.grid$znew,
@@ -896,9 +885,10 @@ A grid that indicates the positions of macropres is generated with \code{ mac.gr
                              plottin = T)
 @
 
+$\vdots$
+\subsubsection{Other files }
 The remaining steps would be the definition of control files, multiplier grids, surface 
 attributes and the assignment of soil types in the same manner as described above.
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -987,7 +977,6 @@ The latter two functions are also used in the visualisation routines.
 A few things are left to tidy-up at the end of this tutorial session: 
 <<ending, results='hide'>>=
 try(detach(test.geom), silent=TRUE)  # detach test geometry object
-options(op)                          # reset options
 @
 
 
