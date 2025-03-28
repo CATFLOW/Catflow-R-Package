@@ -1,7 +1,8 @@
 ### R code from vignette source 'catflow.Rnw'
 ### Encoding: ISO8859-1
 
-
+### JW make consistent example, 
+###    changes in write.facmat 
 
 ###################################################
 ### code chunk number 2: prelim
