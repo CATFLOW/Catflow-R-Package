@@ -41,7 +41,7 @@ function( timeser,
 
  knickdat <- rbind(knickdat[1,], irbtyp, knickdat[2,])
  } else
- {  # "Knickdat" direkt für RB-Zeitreihenmit >1 Spalte, es wird einfach zeitreihe verwendet.
+ {  # "Knickdat" direkt fï¿½r RB-Zeitreihenmit >1 Spalte, es wird einfach zeitreihe verwendet.
 knickdat <- t(cbind(timeser[,1], irbtyp, timeser[,-1])  )
  }
  
@@ -49,7 +49,7 @@ knickdat <- t(cbind(timeser[,1], irbtyp, timeser[,-1])  )
  write( zeile2, output.file, append = T)
  write(format(knickdat, width = c(8,8,4)), output.file, ncolumns = ncol(timeser)+1, sep = " ", append = T)
             
-print(paste("Generated boundary condition file '", output.file, "'.",sep = "") )         
+print(paste("Generated boundary condition file '", basename(output.file), "'.",sep = "") )         
 
 return(invisible())
 }
