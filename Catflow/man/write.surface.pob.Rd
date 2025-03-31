@@ -18,7 +18,7 @@ write.surface.pob(output.file = "surface.pob",
 Name of file to produce
 }
   \item{xsi}{
-Lateral discretization of slope profile (vector). 
+Lateral discretization of slope profile (vector) 
 }
   \item{lu}{
 Land-use ID:  either a single number to be assigned to all surface nodes, 
