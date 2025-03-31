@@ -73,7 +73,7 @@ A list with two components:
 }
 
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{

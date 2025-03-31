@@ -664,20 +664,23 @@ function( # # # produces a geometry file for the CATFLOW code
   grad_b <- lm(pyb~pxb)   # = gradient(pyb,pxb)
   grad_d <- lm(pyd~pxd)   # = gradient(pyd,pxd)
   
+    # slope of line
+    
   # check if regression worked (sometimes crashes with large x values ?)
   if(any(is.na(coef(grad_b))) ) {
      warning("Right boundary not well defined. Consider increasing soil thickness dyy. ")
-    coef(grad_b)[2] <- unique(gradient(pyb,pxb))
-    }
-  
+    #coef(grad_b)[2] <- unique(gradient(pyb,pxb))
+     ## slope of line
+     grad_ba <- unique(gradient(pyb,pxb))
+    } else grad_ba <- coef(grad_b)[2]
+ 
  if( any(is.na(coef(grad_d))) ) {
      warning("Left boundary not well defined. Consider increasing soil thickness dyy. ")
-     coef(grad_d)[2] <- unique(gradient(pyd,pxd))
-    }
+     grad_da <- unique(gradient(pyd,pxd))
+    } else grad_da <- coef(grad_d)[2]
  
-  # slope of line
-  grad_ba <- coef(grad_b)[2]
-  grad_da <- coef(grad_d)[2]
+
+  
   
   # # plotting          # JW intermediate plot
   #  if(plotting){

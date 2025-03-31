@@ -34,7 +34,7 @@ Flag for generating a regular grid using \code{max.dist}
 A vector of lateral discretization.
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 \seealso{
 \code{\link{discretize.mak}}, \code{\link{discretize.rect}}, \code{\link{discretize.pipe}}

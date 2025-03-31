@@ -44,7 +44,7 @@ No value is returned. A short message indicates that a file has been produced.
 Maurer, T. and E. Zehe (2007) \emph{CATFLOW User Guide and Program Documentation (Version Catstat)}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{
@@ -52,7 +52,7 @@ Jan \enc{Wienhöfer}{Wienhoefer}
 }
 \examples{
  \dontrun{
- # some inflow data in m³/s
+ # some inflow data in m3/s
    inflow <- data.frame("hours" = seq(0,48, by=0.5),
                         "inflow" = c(rep(0,30), 1, rep(3,4), rep(2,3), 
                                       rep(0,25), rep(1,4), rep(0,30))*1e-3 ) 
