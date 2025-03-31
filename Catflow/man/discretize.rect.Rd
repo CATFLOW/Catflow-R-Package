@@ -73,7 +73,7 @@ A list with three components:
  \item{macgrid}{Multiplier matrix/macropore positions, scaled to new grid}
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 
 \seealso{

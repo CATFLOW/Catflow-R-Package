@@ -30,9 +30,7 @@ Double-clicking restores original extent.
 No value is returned. Short messages indicate the extent of the zoom area.
 }
 
-\author{
-Jan \enc{Wienhöfer}{Wienhoefer}
-}
+
 \note{
 This function was adapted from the \code{zoom} function provided with the \code{Hmisc} package.)
 }

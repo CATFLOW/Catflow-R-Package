@@ -40,7 +40,7 @@ Vector of nodes at upper boundary which should keep a finer discretization
 A vector of vertical discretization.
 }
 \author{
-Jan \enc{Wienhöfer}{Wienhoefer}
+Jan \enc{WienhÃ¶fer}{Wienhoefer}
 }
 \seealso{
 \code{\link{discretize.mak}}, \code{\link{discretize.rect}}, \code{\link{discretize.pipe}}
