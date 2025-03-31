@@ -10,24 +10,24 @@ Examples of values are multipliers to scale saturated hydraulic conductivity,
 or initial conditions in terms of matric potential or soil moisture.
 }
 \usage{
-write.facmat(output.file, et = eta, xs = xsi, headr, numh = 1, fac = 1)
+write.facmat(output.file, eta, xsi, header = NULL, numh = 1, fac = 1)
 }
 
 \arguments{
   \item{output.file}{
 Name of file to produce (if missing, no file is generated)
 }
-  \item{et}{
+  \item{eta}{
 Vertical discretization of slope profile (eta vector)
 }
-  \item{xs}{
+  \item{xsi}{
 Lateral discretization of slope profile (xsi vector)
+}
+  \item{header}{
+Header/First line in output file. Defaults to "paste(-1000-numh, length(eta), length(xsi))".
 }
   \item{numh}{
 ID of hillslope (integer)
-}
-  \item{headr}{
-Header/First line in output file. Defaults to "paste(-1000-numh, length(et), length(xs))".
 }
   \item{fac}{
 Value that is to be assigned to all nodes. Either a single number, or a matrix of dimensions dim(fac) = c(length(et), length(xs)). 
@@ -61,20 +61,24 @@ Jan \enc{Wienhöfer}{Wienhoefer}
   inifile <- file.path(tempwd, "soilhyd.ini")
    
   # Dummy multipliers for scaling saturated hydraulic conductivity: all one
-  write.facmat(output.file = ksfile)
+  write.facmat(output.file = ksfile, eta, xsi)
   file.show(ksfile)
       
   # Initial conditions: Uniform Psi (soilhyd.ini)
   write.facmat(output.file="soilhyd.ini",
-             headr=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
-             fac = 0.8)
+                eta=eta, xsi=xsi, numh=1, 
+                header=paste("PSI   ", 0,  1, length(eta), length(xsi), 1),
+                fac = 0.8)
+
   file.show("soilhyd.ini")
     
   # Multipliers for some exponential decrease of saturated hydraulic conductivity with depth
   exp.dec <- exp(seq(0, -3, length=length(eta) ))
    exp.dec <- rep(round(exp.dec,3), length(xsi) ) 
   
-  write.facmat(output.file=ksfile, fac=exp.dec)
+  write.facmat(output.file=ksfile, 
+               eta, xsi,
+               fac=exp.dec)
   file.show(ksfile)
    }
 }

@@ -15,6 +15,7 @@ export(mac.grid)
 export(make.geometry)
 export(make.simgrid)
 export(plot.catf.bal)
+export(plot.catf.geometry)
 export(plot.catf.grid)
 export(plot.catf.movie)
 export(plot.macros)
@@ -42,8 +43,8 @@ export(write.precip)
 export(write.printout)
 export(write.surface.pob)
 export(zoom)
-  importFrom("grDevices", "bringToTop", "colorRampPalette", "dev.cur",
-             "dev.off", "pdf", "rainbow", "x11")
+  importFrom("grDevices", "colorRampPalette", "dev.cur", "dev.new",
+             "dev.interactive", "dev.off", "pdf", "rainbow", "x11")
   importFrom("graphics", "abline", "image", "legend", "lines", "locator",
              "matlines", "matplot", "matpoints", "par", "plot", "points",
              "polygon")

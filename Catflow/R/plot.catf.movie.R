@@ -93,7 +93,6 @@ for (j in 1:numbersteps) {
      lines(geof$sko[, 1], geof$hko[, 1], t = "l", lwd = 2, col = 8)
      lines(geof$sko[, xnum], geof$hko[, xnum], t = "l", lwd = 2, col = 8)
 
-  #if (SCREENPLOT)  #bringToTop()
   
 
  ### Color.codes: ## color coding - scale values in color space - specific palette

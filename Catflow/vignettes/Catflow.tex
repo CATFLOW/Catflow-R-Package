@@ -1,0 +1,1242 @@
+%\VignetteEngine{knitr::knitr} 
+%\VignetteEncoding{UTF-8} 
+
+
+%% put links / references (directly)
+
+\documentclass[article,nojss]{jss}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlsng}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hldef}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+%% need no \usepackage{Sweave.sty}
+\DeclareGraphicsExtensions{.pdf,.eps}
+\usepackage[utf8]{inputenc}
+
+
+\author{Jan Wienhöfer\\Karlsruhe Institute of Technology}
+\Plainauthor{Jan Wienhöfer}
+
+\title{\pkg{Catflow}: Tools for pre- and postprocessing for the hydrological model \proglang{CATFLOW}}
+\Plaintitle{Catflow: Tools for pre- and postprocessing for the hydrological model CATFLOW}
+
+\Keywords{utilities, preprocessing, postprocessing, \proglang{CATFLOW}, \proglang{R}}
+\Plainkeywords{utilities, preprocessing, postprocessing, CATFLOW, R}
+
+                             
+\Abstract{The \pkg{Catflow} \proglang{R}-package is a collection of utilities for the
+hydrological model \proglang{CATFLOW}.
+The objective of the package is to facilitate pre-processing operations when building up 
+\proglang{CATFLOW} models, and post-processing of simulation runs. It collects tools that have
+been previously available as \proglang{Matlab} code, as well as newly added functions.
+}
+
+\Address{
+  Jan Wienhöfer\\
+  Karlsruhe Institute of Technology\\
+  E-mail: \email{jan.wienhoefer@kit.edu}\\
+  }
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+\tableofcontents
+
+
+
+
+                                            
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% First part %%
+\newpage
+\section*{Introduction} 
+\addcontentsline{toc}{section}{Introduction}
+
+\proglang{CATFLOW}  is a physically based, distributed model for simulating the dynamics of water and solutes in small rural catchments on the event and season time scale. 
+The \pkg{Catflow} package is a collection of utilities for pre- and postprocessing functionality
+for \proglang{CATFLOW}, 
+written for the \proglang{R} system for statistical computing
+(\url{http://www.R-project.org/}).
+
+This vignette is intended to serve as a tutorial on how to use the tools of the
+\pkg{Catflow} package, providing a step-by-step example of a (simple) modelling session. 
+For further information on individual functions, please refer to the respective help pages via \code{?NameOfTheFunction}.
+
+The tutorial is organized in three parts:
+\begin{itemize}
+\item Part~\ref{sec:preproc} explains how to create \proglang{CATFLOW} models for the simulation of one hillslope:
+      \begin{itemize}
+      \item generate the model geometry, in terms of a system of curvilinear orthogonal coordinates, 
+            starting from a slope profile line (Section~\ref{sec:geometry}, p.~\pageref{sec:geometry}),
+      \item write input files that relate to the modelled geometry or time-series 
+            which are to be included in the model (Section~\ref{sec:input}, p.~\pageref{sec:input}),
+       \end{itemize}
+ \item Part~\ref{sec:macro} details how to simulate three different types of macropores and prepare an appropriate model geometry (p.~\pageref{sec:macro}).
+ \item Part~\ref{sec:postproc} provides details on how to extract and visualise the results
+ from \proglang{CATFLOW} simulations.
+ 
+\end{itemize}
+ 
+
+
+Please note: \pkg{Catflow} requires the packages  \pkg{deSolve}, \pkg{RColorBrewer}, \pkg{splines}, \pkg{xts}, and \pkg{zoo}, which should be installed automatically together with \pkg{Catflow}. 
+                                       
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\part[Preprocessing for CATFLOW]{Preprocessing for \proglang{CATFLOW}}\label{sec:preproc}
+
+
+This part describes how model geometry and other input files in the specific file formats for \proglang{CATFLOW} can be created.
+
+To illustrate the usage of \pkg{Catflow}, we first load the package and 
+create a sub-directory within the current working dir, where all the files for our sample CATFLOW session are collected. Here, we use a temporary folder and create a project directory \verb+Catflow-TEST+). The next lines are \proglang{R} code that can be executed after copying to the console:
+  % JW hint on code chunks
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hldef{(}\hlsng{"Catflow"}\hldef{)}
+ \hlcom{# example project path, to a temporary folder}
+\hldef{exampledir} \hlkwb{<-} \hlkwd{file.path}\hldef{(}\hlkwd{tempdir}\hldef{(),}\hlsng{"Catflow-TEST"}\hldef{)}
+ \hlcom{# create directory}
+\hlkwa{if}\hldef{(}\hlopt{!}\hlkwd{file_test}\hldef{(}\hlsng{"-d"}\hldef{, exampledir))} \hlkwd{dir.create}\hldef{(exampledir)}
+ \hlcom{# file path for input directory}
+\hldef{indir} \hlkwb{<-} \hlkwd{file.path}\hldef{(exampledir,} \hlsng{"in"}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+\section[CATFLOW model geometry]{\proglang{CATFLOW} model geometry}\label{sec:geometry}
+To generate a \proglang{CATFLOW} model geometry, we need a slope profile line. This could either be obtained from a GIS (Geographic Information System), or it may be specified manually.       % JW introduce Grass / Lump
+Suppose we have the following slope line, represented by 20 points and associated values for slope elevation and width of the slope (Fig.~\ref{fig:slopeline}):
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# northing of slope line }
+  \hldef{north} \hlkwb{<-} \hlkwd{seq}\hldef{(}\hlnum{1}\hldef{,}\hlnum{11}\hldef{,} \hlkwc{length}\hldef{=}\hlnum{20}\hldef{)}
+\hlcom{# easting of slope line}
+  \hldef{east}  \hlkwb{<-} \hlkwd{seq}\hldef{(}\hlnum{2}\hldef{,} \hlnum{8}\hldef{,} \hlkwc{length}\hldef{=}\hlnum{20}\hldef{)}
+\hlcom{# elevation of at points of slope line}
+  \hldef{elev}  \hlkwb{<-} \hlkwd{approx}\hldef{(}\hlkwd{c}\hldef{(}\hlnum{8}\hldef{,}\hlnum{5}\hldef{),}\hlkwc{n}\hldef{=}\hlnum{20}\hldef{)}\hlopt{$}\hldef{y} \hlopt{+} \hlkwd{sin}\hldef{((}\hlnum{0}\hlopt{:}\hlnum{19}\hldef{)}\hlopt{/}\hlnum{2}\hldef{)}\hlopt{/}\hlnum{5}
+\hlcom{# width of slope at points of slope line (here: uniform) }
+  \hldef{slopewidth} \hlkwb{<-} \hlkwd{rep}\hldef{(}\hlnum{1}\hldef{,}\hlnum{20}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{figure}[h!]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{FIG/CFvigslopelineFig-1} 
+\end{knitrout}
+\caption{\label{fig:slopeline} Schematic of slope line in map and profile view}
+\end{center}
+\end{figure}
+
+Now suppose we want to generate a CATFLOW geometry from this slope line with a constant thickness of 2 m (\code{htyp = 1, dyy = 2}) and a discretization of 21 nodes to the lateral (\code{xsi}) and 11 nodes to the vertical (\code{eta}). 
+ We collect all the values needed, including the total area of the slope and the filename for the output, in a list:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{simple.slope} \hlkwb{<-} \hlkwd{list}\hldef{(} \hlkwc{xh} \hldef{= north,}
+                      \hlkwc{yh} \hldef{= east,}
+                      \hlkwc{zh} \hldef{= elev,}
+                      \hlkwc{bh} \hldef{= slopewidth,}
+                      \hlkwc{tot.area} \hldef{=} \hlnum{12} \hldef{,}
+                      \hlkwc{htyp} \hldef{=} \hlnum{1}\hldef{,}
+                      \hlkwc{dyy} \hldef{=} \hlnum{2}\hldef{,}
+                      \hlkwc{xsi} \hldef{=} \hlkwd{seq}\hldef{(}\hlnum{0}\hldef{,}\hlnum{1}\hldef{,}\hlkwc{length} \hldef{=} \hlnum{21}\hldef{),}
+                      \hlkwc{eta} \hldef{=} \hlkwd{seq}\hldef{(}\hlnum{0}\hldef{,}\hlnum{1}\hldef{,}\hlkwc{length} \hldef{=} \hlnum{11}\hldef{),}
+                      \hlkwc{out.file}\hldef{=}\hlsng{"test.geo"}      \hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+With this list we are ready to generate a CATFLOW geometry using \code{make.geometry()}, 
+which  produces a text file for CATFLOW (\code{out.file="test.geo"}) in the specified directory (\code{project.path = indir}):
+
+                                  
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hldef{test.geom} \hlkwb{<-} \hlkwd{make.geometry}\hldef{(simple.slope,} \hlkwc{project.path} \hldef{= indir)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+The following command generates a plot of the geometry (Fig.~\ref{fig:geometry})
+
+\begin{figure}[ht]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plot.catf.geometry}\hldef{(test.geom,} \hlkwc{zooming} \hldef{=} \hlnum{FALSE}\hldef{,}
+                   \hlkwc{ylab}\hldef{=}\hlsng{"Elevation [m]"}\hldef{,}
+                   \hlkwc{xlab}\hldef{=}\hlsng{"Distance along slope line [m]"}\hldef{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{FIG/CFvigplotGeom-1} 
+\end{knitrout}
+\caption{\label{fig:geometry} Model geometry generated with \code{make.geometry()} and plotted with \code{plot.catf.geometry()}.}
+\end{center}
+\end{figure}
+
+For further details, see \code{?make.geometry}. %For reading the output of the CATLFOW Wizard, see \code{?fromArcGIS}.
+More elaborate examples of generating CATFLOW geometries are given in Part \ref{sec:macro} in combination with the simulation of macropores.
+
+%%%%%             %%%%%%
+\newpage
+\section[Preparing CATFLOW input files]{Preparing \proglang{CATFLOW} input files}\label{sec:input}
+
+The \pkg{Catflow} package offers additional possibilities for writing input files besides the geometry file, namely:
+\begin{itemize} 
+  \item \code{write.facmat()}: multiplier matrices for $K_s$ and $\theta_s$, initial conditions, soil IDs; 
+  \item \code{write.precip()}: precipitation time series; 
+  \item \code{write.climate()}: climatic data time series; 
+  \item \code{write.printout()}: printout times;  
+  \item \code{write.surface.pob()}: surface node attributes;
+  \item \code{write.control()}: project control files; and
+  \item \code{write.CATFLOW.IN()}: the main input file. 
+\end{itemize} 
+
+To obtain a complete file structure for running CATFLOW, some more files are
+created using basic \proglang{R} commands (Section \ref{sec:otherFiles}), but without using special functionality of the \pkg{Catflow} package. % JW ref to where this happens 
+
+%----------------------------------
+\subsection[Multiplier matrices for K_s and theta_s / Inital conditions]{Multiplier matrices for $K_s$ and $\theta_s$ / Inital conditions} 
+
+CATFLOW requires two files with multipliers, one for $K_s$ and one for $\theta_s$. These files can be generated using \code{write.facmat()}, which needs the discretization in terms of \code{eta} and \code{xsi}.
+These are contained in \code{test.geom} from Section~\ref{sec:geometry}, and are made available by attaching \code{test.geom}:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{attach}\hldef{(test.geom)}   \hlcom{# attach the geometry to make 'eta' and 'xsi' available}
+  \hlkwd{write.facmat}\hldef{(}\hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,} \hlsng{"ksmult.dat"}\hldef{), eta, xsi)}
+  \hlkwd{write.facmat}\hldef{(}\hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,} \hlsng{"thsmult.dat"}\hldef{), eta, xsi)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+%% same again in "beautiful printing" (with empty lines)
+%\begin{Schunk}
+%\begin{Sinput}
+ %attach(test.geom)   # attach the geometry to make 'eta' and 'xsi' available
+    %
+%# Multipliers for scaling saturated hydraulic conductivity - default: all one
+ %write.facmat(output.file=file.path(indir, "ksmult.dat"))
+ %
+%# Dummy multipliers for scaling saturated water content / porosity: always one
+ %write.facmat(output.file=file.path(indir, "thsmult.dat") )
+  %
+ %file.show(file.path(indir, "ksmult.dat"))            ## display the produced file ##   
+%\end{Sinput}
+%\end{Schunk}
+
+
+It is also possible to specify non-uniform values -- simply specify \code{fac} as a matrix of appropriate size.  \footnote{Note: CATFLOW currently cannot handle multipliers other than '1' for scaling saturated water content.}
+
+
+The same function may be used to specify initial conditions or soil type identifiers, but for these different header lines are needed:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# Initial conditions: Uniform Psi (0.8 m) }
+  \hlkwd{write.facmat}\hldef{(}\hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,} \hlsng{"soilhyd.ini"}\hldef{),}
+               \hldef{eta, xsi,}
+               \hlkwc{header}\hldef{=}\hlkwd{paste}\hldef{(}\hlsng{"PSI   "}\hldef{,} \hlnum{0}\hldef{,}  \hlnum{1}\hldef{,} \hlkwd{length}\hldef{(eta),} \hlkwd{length}\hldef{(xsi),} \hlnum{1}\hldef{),}
+               \hlkwc{fac} \hldef{=} \hlnum{0.8}\hldef{)}
+\hlcom{# Soil type IDs: }
+   \hlkwd{write.facmat}\hldef{(}\hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,} \hlsng{"soils.bod"}\hldef{),}
+               \hlkwc{header}\hldef{=} \hlkwd{paste}\hldef{(}\hlsng{"BODEN"}\hldef{,}  \hlkwd{length}\hldef{(eta),} \hlkwd{length}\hldef{(xsi),} \hlnum{1}\hldef{),}
+               \hldef{eta, xsi,}
+               \hlkwc{fac} \hldef{=} \hlkwd{matrix}\hldef{(}\hlkwd{c}\hldef{(}\hlkwd{rep}\hldef{(}\hlnum{1}\hldef{,} \hlkwd{ceiling}\hldef{(}\hlkwd{length}\hldef{(eta)}\hlopt{/}\hlnum{2}\hldef{)),}
+                              \hlkwd{rep}\hldef{(}\hlnum{2}\hldef{,}\hlkwd{floor}\hldef{(}\hlkwd{length}\hldef{(eta)}\hlopt{/}\hlnum{2}\hldef{)) ),}
+               \hlkwc{nrow} \hldef{=} \hlkwd{length}\hldef{(eta),} \hlkwc{ncol} \hldef{=} \hlkwd{length}\hldef{(xsi))  )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+\subsection{Precipitation time series} \label{sec:rain}
+
+CATFLOW requires a precipitation record from which the rainfall intensities 
+are interpolated between discrete time steps; rainfall intensities are thus only needed  
+at those time steps when they are changing. 
+
+The function \code{write.precip()} converts a regular rainfall record, i.e. intensity at uniform time intervals, to the CATFLOW specific format:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# some artificial rainfall record}
+  \hldef{raindat} \hlkwb{<-} \hlkwd{data.frame}\hldef{(}\hlsng{"hours"} \hldef{=} \hlkwd{seq}\hldef{(}\hlnum{0}\hldef{,}\hlnum{48}\hldef{,} \hlkwc{by}\hldef{=}\hlnum{0.5}\hldef{),}
+                        \hlsng{"precip"} \hldef{=} \hlkwd{c}\hldef{(}\hlkwd{rep}\hldef{(}\hlnum{0}\hldef{,}\hlnum{30}\hldef{),} \hlnum{1}\hldef{,} \hlkwd{rep}\hldef{(}\hlnum{3}\hldef{,}\hlnum{4}\hldef{),} \hlkwd{rep}\hldef{(}\hlnum{2}\hldef{,}\hlnum{3}\hldef{),}
+                                      \hlkwd{rep}\hldef{(}\hlnum{0}\hldef{,}\hlnum{25}\hldef{),} \hlkwd{rep}\hldef{(}\hlnum{1}\hldef{,}\hlnum{4}\hldef{),} \hlkwd{rep}\hldef{(}\hlnum{0}\hldef{,}\hlnum{30}\hldef{)) )}
+  \hlkwd{plot}\hldef{(raindat,} \hlkwc{t}\hldef{=}\hlsng{"s"}\hldef{,} \hlkwc{ylab}\hldef{=}\hlsng{"Precip. [mm/h]"}\hldef{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{FIG/CFvigrain-1} 
+\begin{kframe}\begin{alltt}
+  \hlkwd{write.precip}\hldef{(raindat,} \hlkwd{file.path}\hldef{(indir,} \hlsng{"TEST.rain.dat"}\hldef{),}
+                \hlkwc{start.time}\hldef{=} \hlsng{"01.01.2004 00:00:00"} \hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+%----------------------------------
+\subsection{Climatic data time series}\label{sec:clima} 
+
+ The function \code{write.climate()} writes a file with climatic data in the CATFLOW specific
+ format. This mainly affects the header of the file, which holds some default parameters. 
+ 
+ An example: 
+                                               
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hldef{climadat} \hlkwb{<-} \hlkwd{data.frame}\hldef{(}
+      \hlsng{"hours"} \hldef{=} \hlkwd{seq}\hldef{(}\hlnum{0}\hldef{,}\hlnum{48}\hldef{,} \hlkwc{by}\hldef{=}\hlnum{0.5}\hldef{),}
+      \hlsng{"GlobRad"} \hldef{=}  \hlkwd{ifelse}\hldef{(}\hlnum{0} \hlopt{+} \hlnum{800} \hlopt{*} \hlkwd{sin}\hldef{((}\hlkwd{seq}\hldef{(}\hlnum{0}\hldef{,}\hlnum{48}\hldef{,} \hlkwc{by}\hldef{=}\hlnum{0.5}\hldef{)} \hlopt{-} \hlnum{8}\hldef{)}\hlopt{*}\hldef{pi}\hlopt{/}\hlnum{12}\hldef{)} \hlopt{>} \hlnum{0}\hldef{,}
+                          \hlnum{0} \hlopt{+} \hlnum{800} \hlopt{*} \hlkwd{sin}\hldef{((}\hlkwd{seq}\hldef{(}\hlnum{0}\hldef{,}\hlnum{48}\hldef{,} \hlkwc{by}\hldef{=}\hlnum{0.5}\hldef{)} \hlopt{-} \hlnum{8}\hldef{)}\hlopt{*}\hldef{pi}\hlopt{/}\hlnum{12}\hldef{),}  \hlnum{0}\hldef{),}
+      \hlsng{"NetRad"} \hldef{=} \hlnum{NA} \hldef{,}
+      \hlsng{"Temp"} \hldef{=} \hlnum{4} \hlopt{+}  \hlkwd{sin}\hldef{((}\hlkwd{seq}\hldef{(}\hlnum{0}\hldef{,}\hlnum{48}\hldef{,} \hlkwc{by}\hldef{=}\hlnum{0.5}\hldef{)} \hlopt{-} \hlnum{12}\hldef{)}\hlopt{*}\hldef{pi}\hlopt{/}\hlnum{12}\hldef{)  ,}
+      \hlsng{"RelHum"} \hldef{=} \hlnum{70} \hlopt{+} \hlnum{10}\hlopt{*} \hlkwd{sin}\hldef{((}\hlkwd{seq}\hldef{(}\hlnum{0}\hldef{,}\hlnum{48}\hldef{,} \hlkwc{by}\hldef{=}\hlnum{0.5}\hldef{))}\hlopt{*}\hldef{pi}\hlopt{/}\hlnum{12}\hldef{) ,}
+      \hlsng{"vWind"}  \hldef{=}  \hlkwd{rlnorm}\hldef{(}\hlnum{97}\hldef{,} \hlnum{0}\hldef{,}\hlnum{1}\hldef{) ,}
+      \hlsng{"dirWind"} \hldef{=} \hlkwd{runif}\hldef{(}\hlnum{97}\hldef{,} \hlnum{0}\hldef{,} \hlnum{359}\hldef{)}
+      \hldef{)}
+ \hlkwd{write.climate}\hldef{(climadat,} \hlkwd{file.path}\hldef{(indir,} \hlsng{"TEST.clima.dat"}\hldef{),}
+                  \hlkwc{start.time}\hldef{=} \hlsng{"01.01.2004 00:00:00"} \hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+%----------------------------------
+\subsection{Printout times} 
+           
+To write a file with printout times in the CATFLOW specific
+format, \code{ write.printout()} can be used. 
+In the following example, we construct a printout time file for dumping all results (\code{flag = 1}) in intervals of 0.5 h
+ 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{write.printout}\hldef{(}\hlkwc{output.file} \hldef{=}  \hlkwd{file.path}\hldef{(indir,} \hlsng{"printout.prt"}\hldef{),}
+                 \hlkwc{start.time} \hldef{=} \hlsng{"01.01.2004 00:00:00"}\hldef{,}
+                 \hlkwc{end.time} \hldef{=} \hlsng{"03.01.2004 00:00:00"}\hldef{,}
+                 \hlkwc{intervall} \hldef{=} \hlnum{0.5}\hldef{,} \hlkwc{time.unit} \hldef{=} \hlsng{"h"}\hldef{,}
+                 \hlkwc{flag} \hldef{=} \hlnum{1}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+ 
+
+%----------------------------------
+\subsection{Surface node attributes} 
+
+The assignment of attributes (land-use, precipitation, climate, wind direction sectors)
+to the surface nodes of a CATFLOW model is done via the surface attribute file, which can be
+produced using \code{write.surface.pob()}. 
+
+In the following example, uniform values of land-use etc. are assigned to the surface nodes 
+in \code{test.geom}, which should be still atttached, and so we can use the lateral discretization vector \code{xsi} directly:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+   \hlkwd{write.surface.pob}\hldef{(}\hlkwc{output.file} \hldef{=}  \hlkwd{file.path}\hldef{(indir,} \hlsng{"surface.pob"}\hldef{),}
+                    \hldef{xsi,} \hlkwc{lu} \hldef{=} \hlnum{33}\hldef{,}
+                    \hlkwc{windid} \hldef{=} \hlkwd{rep}\hldef{(}\hlnum{1}\hldef{,}\hlnum{4}\hldef{))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+ 
+
+
+
+%----------------------------------
+\subsection{Project control file and main control file} 
+
+The function \code{write.control()} offers the possibility to create a project specific control
+file with the simulation control parameters and the input/output filenames. Additionally,
+a directory for the output is created.
+
+In the following chunk we create a project control file with the input files that have been generated so far (simulation parameters can take default values here):
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{write.control}\hldef{(}\hlkwc{output.file} \hldef{=} \hlsng{"TEST.example.in"}\hldef{,}
+               \hlkwc{project.path} \hldef{= exampledir,}
+               \hlkwc{start.date} \hldef{=} \hlsng{"01.01.2004 00:00:00.00"}\hldef{,}
+               \hlkwc{end.date} \hldef{=} \hlsng{"03.01.2004 00:00:00"}\hldef{,}
+               \hlkwc{slope.in.list} \hldef{=} \hlkwd{list}\hldef{(}
+                \hlkwc{slope1} \hldef{=} \hlkwd{list}\hldef{(} \hlkwc{geo.file} \hldef{=} \hlsng{"test.geo"}\hldef{,}
+                               \hlkwc{soil.file} \hldef{=} \hlsng{"soils.bod"}\hldef{,}
+                               \hlkwc{ks.fac} \hldef{=} \hlsng{"ksmult.dat"}\hldef{,}
+                               \hlkwc{ths.fac} \hldef{=} \hlsng{"thsmult.dat"}\hldef{,}
+                               \hlkwc{macro.file} \hldef{=} \hlsng{"profil.mak"}\hldef{,}
+                               \hlkwc{cv.file} \hldef{=} \hlsng{"cont_vol.cv"}\hldef{,}
+                               \hlkwc{ini.file} \hldef{=} \hlsng{"soilhyd.ini"}\hldef{,}
+                               \hlkwc{print.file} \hldef{=} \hlsng{"printout.prt"}\hldef{,}
+                               \hlkwc{surf.file} \hldef{=} \hlsng{"surface.pob"}\hldef{,}
+                               \hlkwc{bc.file} \hldef{=} \hlsng{"boundary.rb"}\hldef{)) )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Note that a output directory named 'out' has been added to the current working dir.
+
+
+Finally, we need to write the main control file, which merely contains the name of the project control file:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{write.CATFLOW.IN}\hldef{(}\hlkwc{control.files}\hldef{=}\hlsng{"TEST.example.in"}\hldef{,}
+                  \hlkwc{project.path} \hldef{= exampledir)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+%----------------------------------
+\subsection{Other files}\label{sec:otherFiles}
+
+Some of the files given in the project control file have not been created so far,
+e.g. the hilllslope-specific in the \code{slope.in.list} of \code{write.control()}:
+\begin{itemize} 
+\item macro.file:  'Catflow-TEST/in/profil.mak'
+\item cv.file:  'Catflow-TEST/in/cont\_vol.cv'
+\item bc.file:  'Catflow-TEST/in/boundary.rb'
+\end{itemize} 
+ 
+To complete the file structure, these are produced with the basic \code{cat} command (of course, you could as well use any text editor to create these files):
+ 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# macro.file = "profil.mak"}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"1  0  2"}\hldef{,} \hlsng{"ari"}\hldef{,} \hlsng{"0.00 1.00 0.00 1.00 1  1.00 1.00 "}\hldef{,} \hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{),}
+   \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"profil.mak"}\hldef{)  )}
+\hlcom{# cv.file = "cont_vol.cv" }
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"1"}\hldef{,} \hlsng{"0.8   0.9   0.98   1.0"}\hldef{,}\hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{),}
+   \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"cont_vol.cv"}\hldef{)  )}
+\hlcom{# bc.file = "boundary.rb"}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"L"}\hldef{,} \hlsng{"1  0"}\hldef{,} \hlsng{"0. 1. 0"}\hldef{,}   \hlsng{" "}\hldef{,}
+           \hlsng{"R"}\hldef{,} \hlsng{"1  0"}\hldef{,} \hlsng{"0. 1. -10"}\hldef{,} \hlsng{" "}\hldef{,}
+           \hlsng{"T"}\hldef{,} \hlsng{"1  0"}\hldef{,} \hlsng{"0. 1. -99 "}\hldef{,}\hlsng{" "}\hldef{,}
+           \hlsng{"B"}\hldef{,} \hlsng{"1  0"}\hldef{,} \hlsng{"0. 1. 0"}\hldef{,}   \hlsng{" "}\hldef{,}
+           \hlsng{"S"}\hldef{,} \hlsng{"1  0"}\hldef{,} \hlsng{"0. 1. 0. 1. -99"}\hldef{,}   \hlsng{" "}\hldef{,}
+           \hlsng{"M"}\hldef{,} \hlnum{0} \hldef{,} \hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{),}
+   \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"boundary.rb"}\hldef{)  )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+
+The next bunch of files required by CATFLOW are the global simulation files defined in \code{global.in.list} for \code{write.control()}: 
+
+\begin{itemize} 
+\item winddir.file: 'Catflow-TEST/in/winddir.def'
+ \item soildef.file: 'Catflow-TEST/in/soils.def'
+ \item timeser.file: 'Catflow-TEST/in/timeser.def'
+ \item lu.file: 'Catflow-TEST/in/landuse/lu\_file.def'
+
+
+\end{itemize} 
+
+These are created with the following chunks. First we generate the file for the definition
+of wind direction sectors:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"4"}\hldef{,}
+            \hlsng{"240   0.81"}\hldef{,}
+            \hlsng{" 50   0.78"}\hldef{,}
+            \hlsng{" 80   0.97"}\hldef{,}
+            \hlsng{"220   0.94"}\hldef{,} \hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{),}
+  \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"winddir.def"}\hldef{) )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+This chunk writes a soil type definition for two soil types:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"2"}\hldef{,} \hlsng{"1 Loamy Sand, porosity 0.55, bulk dens 1 g/cm3"}\hldef{,}
+           \hlsng{"1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1."}\hldef{,}
+           \hlsng{"4.05e-5  0.55 0.06 12.40 2.28 -6.00 8.00 1000.00 0.80"}\hldef{,}
+           \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,}
+           \hlsng{"2 Sandy Clay Loam (30% S, 40 % U; 30 % T)"}\hldef{,}
+           \hlsng{"1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1."}\hldef{,}
+           \hlsng{"3.42e-6 0.48 0.08 0.96 1.5 -6.00 8.00 1200.00 0.80"}\hldef{,}
+           \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,} \hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{) ,}
+  \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"soils.def"}\hldef{) )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+This chunk produces a a time-series definition file which links to the precipitation, 
+land-use and climate records (see \ref{sec:rain}, \ref{sec:clima}):
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"PREC"}\hldef{,} \hlsng{"1"}\hldef{,} \hlsng{"in/TEST.rain.dat"}\hldef{,} \hlsng{""}\hldef{,}
+           \hlsng{"BC"}\hldef{,} \hlsng{"0"}\hldef{,} \hlsng{""}\hldef{,} \hlsng{"SINKS"}\hldef{,}\hlsng{"0"}\hldef{,} \hlsng{""}\hldef{,} \hlsng{"SOLUTE"}\hldef{,} \hlsng{"0"}\hldef{,} \hlsng{""}\hldef{,}
+           \hlsng{"LAND-USE"}\hldef{,} \hlsng{"in/landuse/lu_ts.dat"}\hldef{,} \hlsng{""}\hldef{,}
+           \hlsng{"CLIMATE"}\hldef{,} \hlsng{"1"}\hldef{,} \hlsng{"in/TEST.clima.dat"}\hldef{,} \hlsng{""}\hldef{,} \hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{),}
+  \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"timeser.def"}\hldef{))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Finally, we can prepare all the files related to land-use specifications, some of which
+are placed into their own sub-directory:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+   \hlkwa{if}\hldef{(}\hlopt{!}\hlkwd{file_test}\hldef{(}\hlsng{"-d"}\hldef{,} \hlkwd{file.path}\hldef{(indir,} \hlsng{"landuse"}\hldef{))) \{}
+    \hlkwd{dir.create}\hldef{(}\hlkwd{file.path}\hldef{(indir,} \hlsng{"landuse"}\hldef{))}
+    \hldef{\}}
+\hlcom{# pointer to land-use parameters}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"3"}\hldef{,} \hlsng{"coniferous forest"}\hldef{,}
+           \hlsng{"in/landuse/conif.par"}\hldef{,}
+           \hlkwc{sep} \hldef{=} \hlkwd{strrep}\hldef{(}\hlsng{" "}\hldef{,}\hlnum{13}\hldef{)),}
+   \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"landuse"}\hldef{,} \hlsng{"lu_file.def"}\hldef{) )}
+
+\hlcom{# time-series of land-use parameters}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"01.01.2004 00:00:00.00"}\hldef{,} \hlsng{"in/landuse/lu_set1.dat"}\hldef{,}
+            \hlsng{"01.01.2005 00:00:00.00"}\hldef{,} \hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{),}
+  \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"landuse"}\hldef{,} \hlsng{"lu_ts.dat"}\hldef{) )}
+\hlcom{# parameters of land-use type 'coniferous forest'}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}
+     \hlkwd{paste}\hldef{(}\hlsng{"10"}\hldef{,} \hlsng{"KST"}\hldef{,} \hlsng{"MAK"}\hldef{,} \hlsng{"BFI"}\hldef{,} \hlsng{"BBG"}\hldef{,} \hlsng{"TWU"}\hldef{,} \hlsng{"PFH"}\hldef{,}
+           \hlsng{"PALB"}\hldef{,} \hlsng{"RSTMIN"}\hldef{,} \hlsng{"WP_BFW"}\hldef{,} \hlsng{"F_BFW"}\hldef{,} \hlkwc{sep}\hldef{=} \hlsng{"   "}\hldef{),}
+     \hlsng{"0.    3.     1.    5.    0.95   5.0    5.0     0.15    1.    1.      1."}\hldef{,}
+     \hlkwd{paste}\hldef{(}\hlkwd{c}\hldef{(}\hlsng{"1  "}\hldef{,}\hlsng{"366"}\hldef{),}
+     \hlsng{"2.     1.     1.     1.0   1.0    1.0     1.0   546.    0.05    30."}\hldef{,}
+     \hlkwc{sep}\hldef{=}\hlsng{"    "}\hldef{,} \hlkwc{collapse}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{),}
+    \hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{),}
+  \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"landuse"}\hldef{,} \hlsng{"conif.par"}\hldef{) )}
+\hlcom{# pointer to surface node attributes}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}\hlnum{1}\hldef{,} \hlsng{"33  3    %coniferous forest"}\hldef{,} \hlkwc{sep} \hldef{=} \hlsng{"\textbackslash{}n"}\hldef{),}
+  \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,} \hlsng{"landuse"}\hldef{,} \hlsng{"lu_set1.dat"}\hldef{) )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+Now that we have completed the preparation of input files we are ready to run CATFLOW
+on this simple example. First copy \verb+CATFLOW.EXE+ to the target directory, for from the \pkg{Catflow} package directory, and
+then run the program in the target directory. To do this within \proglang{R}, type:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{file.copy}\hldef{(}\hlkwc{from} \hldef{=} \hlkwd{system.file}\hldef{(}\hlsng{"Catflow-TEST/CATFLOW.exe"}\hldef{,} \hlkwc{package} \hldef{=} \hlsng{"Catflow"}\hldef{),}
+           \hlkwc{to} \hldef{= exampledir)}
+\hlcom{# changing into dir where CATFLOW should be executed}
+\hldef{old.wd} \hlkwb{<-} \hlkwd{setwd}\hldef{(exampledir)}
+\hlcom{# run CATFLOW}
+\hlkwd{system2}\hldef{(}\hlkwd{file.path}\hldef{(exampledir,} \hlsng{"CATFLOW"}\hldef{) )}
+\hlcom{# change back work dir}
+\hlkwd{setwd}\hldef{(old.wd )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+The simulation results are used in part \ref{sec:postproc} to demonstrate the post-processing facilities of the \pkg{Catflow} package.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\part{Simulation of macropores as discrete flowpaths}\label{sec:macro}
+
+The approach to simulate hydraulic effective structures on a given CATFLOW geometry comprises 
+i) the generation of a simulation grid in the desired spatial resolution of the macroporous
+structures, ii) the actual simulation of macropores, iii) refinement of the discretization of 
+simulation nodes and generation of a CATFLOW geometry file, and iv) representation of the 
+simulated macropores as grids for defining "macroporous soil types" or multipliers for 
+scaling hydraulic conductivities.  
+
+Three functions are available for the simulation of macroporous structures, and these  are 
+complemented with functions for creating a model discretization:
+ 
+ \begin{itemize}
+\item{\code{sim.mak()} and \code{discretize.mak()}: }{Vertical, tortuous structures}
+\item{\code{sim.pipe()} and \code{discretize.pipe()}: }{Horizontal, tortuous structures}
+\item{\code{sim.rectmak()} and \code{discretize.rect()}: }{Connected structures}
+\end{itemize}
+
+
+\section{Simple example for the simulation of macropores}\label{simplemacro}
+The first step is to generate a simulation grid in fine resolution with the function \code{make.simgrid()}.
+Let us resume the example from above and produce a simulation grid for the same slope line (the column names in \code{test.slope} are for illustration purposes only):
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hldef{test.slope} \hlkwb{<-} \hlkwd{data.frame}\hldef{(} \hlkwc{north} \hldef{= simple.slope}\hlopt{$}\hldef{xh,}
+                           \hlkwc{east} \hldef{= simple.slope}\hlopt{$}\hldef{yh,}
+                           \hlkwc{elev} \hldef{= simple.slope}\hlopt{$}\hldef{zh,}
+                           \hlkwc{slope.width} \hldef{= simple.slope}\hlopt{$}\hldef{zh)}
+
+ \hldef{test.sim.grid} \hlkwb{<-} \hlkwd{make.simgrid}\hldef{(test.slope,}
+                               \hlkwc{prof.depth} \hldef{=} \hlnum{2}\hldef{,}
+                               \hlkwc{dx.max}\hldef{=}\hlnum{0.1}\hldef{,}
+                               \hlkwc{dz.max} \hldef{=} \hlnum{0.1}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+The spatial resolution of the resulting grid is determined by the desired maximal resolution and the 
+length of the profile; in this case the horizontal resolution is 0.0997 m instead of the desired 0.1 m.
+
+
+Let us now simulate some vertical structures with \code{sim.mak()} 
+and visualize the results with \code{plot.macros()} (Fig. \ref{fig:macsim1}):
+
+
+
+\begin{figure}[h]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{set.seed}\hldef{(}\hlnum{2011}\hldef{)}
+
+ \hldef{sim1} \hlkwb{<-} \hlkwd{with}\hldef{(test.sim.grid,}
+              \hlkwd{sim.mak}\hldef{(xnew,}
+                      \hldef{znew,}
+                      \hldef{width,}
+                      \hlkwc{ksmean}\hldef{=}\hlnum{2.5e-6}\hldef{,}
+                      \hlkwc{kmacro}\hldef{=}\hlnum{1.33e-5}\hldef{,}
+                      \hlkwc{x.step}\hldef{=}\hlnum{10}\hldef{)}
+              \hldef{)}
+
+ \hlkwd{with}\hldef{(test.sim.grid,}
+      \hlkwd{plot.macros}\hldef{(xnew, znew, sim1[[}\hlnum{1}\hldef{]])}
+    \hldef{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{FIG/CFvigmacsim1-1} 
+\end{knitrout}
+\caption{\label{fig:macsim1} Schematic of slope line and simulated vertical macropores}
+\end{center}
+\end{figure}
+
+\clearpage
+Note that the grid \code{sim1} holds scaling factors of "1" for non-macroporous simulation 
+nodes, while 
+macropores have values above 1. Depending on the simulated number of macropores at a certain
+simulation node there can be different scaling factors for macropores. In the case of 
+\code{sim1}, the scaling factors are distributed as follows:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{table}\hldef{(}\hlkwd{round}\hldef{(}\hlkwd{as.vector}\hldef{(sim1[[}\hlnum{1}\hldef{]]),} \hlnum{2}\hldef{))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+% 'silent chunk' for a pretty table in Latex
+% latex table generated in R 4.3.3 by xtable 1.8-4 package
+% Fri Mar 28 17:07:49 2025
+\begin{table}[ht]
+\centering
+\begin{tabular}{lr}
+  \hline
+Scaling factor & No. of nodes \\ 
+  \hline
+1 & 2374 \\ 
+  6.95 &  11 \\ 
+  7.68 &  11 \\ 
+  8.76 &  11 \\ 
+  13.54 &   9 \\ 
+  16.27 &   9 \\ 
+  17.82 &  11 \\ 
+  18.98 &  12 \\ 
+  21.76 &  11 \\ 
+  34.06 &  10 \\ 
+  36.44 &   9 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+The simulated scaling factors may be directly used as scaling factors for saturated
+hydraulic conductivity after calculating a respective model discretization
+and adjusting the grid dimensions; or the simulated structures may be used to define
+different soil-types for matrix and macropores, as demonstrated further below.
+
+
+The next step is to determine an appropriate model discretization to decrease the 
+number of simulation nodes in the fine simulation grid.  
+To keep the resolution fine around the macropores and make it more coarse in between, 
+we apply the function \code{discretize.mak()} on the simulated macropore geometry:
+
+
+
+Figure \ref{fig:discr_macsim1} shows the resulting discretization, which is fine vertically
+around the macropores, and fine at the top and around the endings of the macropores
+horizontally. 
+
+\begin{figure}[h]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hldef{disc.sim1} \hlkwb{<-} \hlkwd{with}\hldef{(test.sim.grid,}
+                   \hlkwd{discretize.mak}\hldef{(}
+                    \hldef{sim1,}
+                    \hlkwc{maxdists} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{4}\hldef{,}\hlnum{2}\hldef{),}
+                    \hlkwc{plot}\hldef{=T)}
+                   \hldef{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{FIG/CFvigdiscretsim1-1} 
+\end{knitrout}
+\caption{\label{fig:discr_macsim1} Schematic of discretization around simulated vertical macropores}
+\end{center}
+\end{figure}
+
+\clearpage
+
+With this discretization in terms of eta and xsi-vectors the corresponding geo-file for
+\proglang{CATFLOW} can be generated:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hldef{sim1.slope} \hlkwb{<-} \hlkwd{list}\hldef{(}
+        \hlkwc{xh} \hldef{= test.slope}\hlopt{$}\hldef{east,}
+        \hlkwc{yh} \hldef{= test.slope}\hlopt{$}\hldef{north,}
+        \hlkwc{zh} \hldef{= test.slope}\hlopt{$}\hldef{elev,}
+        \hlkwc{bh}  \hldef{= test.slope}\hlopt{$}\hldef{slope.width,}
+        \hlkwc{tot.area} \hldef{=} \hlnum{12} \hldef{,}
+        \hlkwc{numh} \hldef{=} \hlnum{1}\hldef{,}
+        \hlkwc{htyp} \hldef{=} \hlnum{1}\hldef{,}
+        \hlkwc{dyy} \hldef{=} \hlnum{2}\hldef{,}
+        \hlkwc{xsi} \hldef{= disc.sim1[[}\hlsng{"xsi"}\hldef{]],}
+        \hlkwc{eta} \hldef{= disc.sim1[[}\hlsng{"eta"}\hldef{]],}
+        \hlkwc{out.file}\hldef{=}\hlsng{"sim1.geo"}      \hldef{)}
+
+  \hldef{sim1.geom} \hlkwb{<-}  \hlkwd{make.geometry}\hldef{(sim1.slope,} \hlkwc{project.path}\hldef{= indir,}
+                              \hlkwc{out.file} \hldef{=} \hlsng{"sim1.geo"}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+In order to complete the generation of input files for this model setup, we need to define
+the respective grids and soil type definitions for the simulated macropore geometry, which
+will differ in the dimensions of the grid for each simulated macropore structure.
+Towards this end we can make use of some of the functions that were already introduced in 
+Section \ref{sec:input}.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{attach}\hldef{(sim1.slope)}
+
+  \hlcom{# Multiplier grids (here all one)}
+  \hlkwd{write.facmat}\hldef{(}\hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,}\hlsng{"thsmult_sim1.dat"}\hldef{), eta, xsi)}
+  \hlkwd{write.facmat}\hldef{(}\hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,}\hlsng{"ksmult_sim1.dat"}\hldef{), eta, xsi)}
+
+  \hlcom{# initial conditions: soilhyd.ini (Psi or Theta or earlier simulation)}
+  \hlkwd{write.facmat}\hldef{(}\hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,}\hlsng{"soil_hyd_sim1.ini"}\hldef{),}
+               \hldef{eta, xsi,}
+               \hlkwc{header}\hldef{=}\hlkwd{paste}\hldef{(}\hlsng{"PSI   "}\hldef{,} \hlnum{0}\hldef{,}  \hlnum{1}\hldef{,} \hlkwd{length}\hldef{(eta),} \hlkwd{length}\hldef{(xsi), numh),}
+               \hlkwc{fac} \hldef{=} \hlnum{0.8}\hldef{)}
+
+  \hlcom{# surface nodes (length xsi)}
+    \hlkwd{write.surface.pob}\hldef{(}\hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,}\hlsng{"surface_sim1.pob"}\hldef{),}
+                      \hldef{xsi,} \hlkwc{lu}\hldef{=}\hlnum{33}\hldef{)}
+
+  \hlkwd{detach}\hldef{(sim1.slope)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+For the assignment of different soil types for matrix and macropores (or for scaling 
+hydraulic conductivity), we need a grid with the dimension of eta and xsi that indicates the
+positions of macroporous nodes. This grid can be calculated from the simulated macropores in fine resolution and the new discretization using \code{mac.grid()}:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hldef{sim1.grid} \hlkwb{<-} \hlkwd{mac.grid}\hldef{(}\hlkwc{relfak} \hldef{= sim1[[}\hlnum{1}\hldef{]],}
+                         \hlkwc{xnew} \hldef{= test.sim.grid}\hlopt{$}\hldef{xnew,}
+                          \hlkwc{znew} \hldef{= test.sim.grid}\hlopt{$}\hldef{znew,}
+                           \hlkwc{xsi_new} \hldef{= disc.sim1[[}\hlsng{"xsi"}\hldef{]],}
+                            \hlkwc{eta_new} \hldef{= disc.sim1[[}\hlsng{"eta"}\hldef{]],}
+                             \hlkwc{plottin} \hldef{=} \hlnum{FALSE}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+In this case we want to assign different soil types for macropores and matrix.
+This is achieved by
+applying \code{assign.mac.soil()} on the \code{sim1.grid}. We will here define the soil
+matrix as soil type "1" and the macropores as a soil type "3":
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlcom{# soil types (nodewise)}
+  \hlkwd{assign.mac.soil}\hldef{(sim1.grid,}
+                  \hlkwc{output.file}\hldef{=}\hlkwd{file.path}\hldef{(indir,}\hlsng{"soilnodes_sim1.bod"}\hldef{),}
+                  \hlkwc{soil.macro} \hldef{=} \hlnum{3}\hldef{,}
+                  \hlkwc{thresh} \hldef{=} \hlnum{0.9}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+Of course, we will have to add the definition of soil type "3" to the soil type definition
+file (repeating the first two entries from above):
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{cat}\hldef{(}\hlkwd{paste}\hldef{(}
+      \hlsng{"3"}\hldef{,} \hlsng{"1 Loamy Sand, porosity 0.55, bulk dens 1 g/cm3"}\hldef{,}
+      \hlsng{"1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1."}\hldef{,}
+      \hlsng{"4.05e-5  0.55 0.06 12.40 2.28 -6.00 8.00 1000.00 0.80"}\hldef{,}
+      \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,}
+      \hlsng{"2 Sandy Clay Loam (30% S, 40 % U; 30 % T)"}\hldef{,}
+      \hlsng{"1  800  1. 1.  1e-4   0.5 0.34 0.11  20. 0.70  0.050   1. 1. 1."}\hldef{,}
+      \hlsng{"3.42e-6 0.48 0.08 0.96 1.5 -6.00 8.00 1200.00 0.80"}\hldef{,}
+      \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,}
+      \hlsng{"3 Poremedium"}\hldef{,}
+      \hlsng{"1 800 1.00 1.00 0.11 0.50 0.34 0.11 20.00 0.70 0.05 1. 1. 1."}\hldef{,}
+      \hlsng{"1.5e-4 0.4 0.057 11.4 2.28 -4.00 4.00 1600.00 0.80"}\hldef{,}
+      \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,} \hlsng{"0. 0. 0."}\hldef{,} \hlkwc{sep}\hldef{=}\hlsng{"\textbackslash{}n"}\hldef{) ,}
+  \hlkwc{file} \hldef{=} \hlkwd{file.path}\hldef{(indir,}\hlsng{"soils.def"}\hldef{) )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+The other input files, e.g., for climate or land-use, can be left unchanged from the 
+first example in Section \ref{sec:input}, so only the main control file 
+\footnote{Please note that this main control file overwrites the one created in Section \ref{sec:input}!} 
+and project control file with the respective output directory remain to be created:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# project control file,  default input.path="in"    }
+\hlkwd{write.control}\hldef{(}\hlsng{"TEST.sim1.in"}\hldef{,}
+  \hlkwc{output.path}\hldef{=} \hlsng{"sim1out"}\hldef{,}
+  \hlkwc{project.path} \hldef{= exampledir,}
+  \hlkwc{slope.in.list} \hldef{=} \hlkwd{list}\hldef{(}
+    \hlkwc{slope1} \hldef{=} \hlkwd{list}\hldef{(}
+      \hlkwc{geo.file}\hldef{=} \hlsng{"sim1.geo"}            \hldef{,}  \hlcom{# slope geometry     }
+      \hlkwc{soil.file}\hldef{=} \hlsng{"soilnodes_sim1.bod"} \hldef{,}  \hlcom{# soil type assignment}
+      \hlkwc{ks.fac} \hldef{=} \hlsng{"ksmult_sim1.dat"}      \hldef{,}  \hlcom{# multipliers for Ks}
+      \hlkwc{ths.fac} \hldef{=} \hlsng{"thsmult_sim1.dat"}    \hldef{,}  \hlcom{# multipliers for theta_s }
+      \hlkwc{macro.file} \hldef{=} \hlsng{"profil.mak"}    \hldef{,}     \hlcom{# macropore multipliers}
+      \hlkwc{cv.file} \hldef{=} \hlsng{"cont_vol.cv"}      \hldef{,}     \hlcom{# control volumes}
+      \hlkwc{ini.file} \hldef{=} \hlsng{"soil_hyd_sim1.ini"}\hldef{,}    \hlcom{# initial conditions (theta/psi)}
+      \hlkwc{print.file} \hldef{=} \hlsng{"printout.prt"}  \hldef{,}     \hlcom{# printout times}
+      \hlkwc{surf.file} \hldef{=} \hlsng{"surface_sim1.pob"}\hldef{,}    \hlcom{# surface attributes}
+      \hlkwc{bc.file} \hldef{=} \hlsng{"boundary.rb"}            \hlcom{# boundary conditions}
+      \hldef{)))}
+
+ \hlcom{# main control file}
+ \hlkwd{write.CATFLOW.IN}\hldef{(}\hlsng{"TEST.sim1.in"}\hldef{,} \hlkwc{project.path} \hldef{= exampledir)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Now CATFLOW can be run on this geometry with simulated macropores. The input files will be 
+taken from the "Catflow-TEST/in" subdirectory, while the results will be collected in the "Catflow-TEST/sim1out" 
+subdirectory.
+
+
+\clearpage
+                                                                 
+\subsection{Advanced example for simulation of macropores}
+
+As briefly indicated in the rather simple example above, the \pkg{Catflow} package offers 
+various possibilites to produce model geometries with structural heterogeneity.    
+In the following it will be described how the three approaches for the simulation of 
+macroporous structures can be combined in order to build up more complex structures.
+
+The idea is to subsequently apply the functions \code{sim.mak()}, \code{sim.pipe} or 
+\code{sim.rect}; eventually with different function arguments. As an example, let us 
+combine the simulation of vertical macropores from Section \ref{simplemacro} 
+with a simulation of horizontal macropores using \code{sim.pipe} on the simulation grid 
+defined above, \code{test.sim.grid()}. Here we re not attaching the slope data again, but use \code{with()} to pass the slope data (xnew, znew) to the function:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{set.seed}\hldef{(}\hlnum{2011}\hldef{)}
+  \hldef{sim2} \hlkwb{<-} \hlkwd{with}\hldef{(test.sim.grid,}
+               \hlkwd{sim.pipe}\hldef{(}
+                  \hlkwc{relfak} \hldef{= sim1[[}\hlnum{1}\hldef{]],}
+                  \hldef{xnew, znew,}
+                  \hlkwc{ml} \hldef{=} \hlnum{8}\hldef{,}
+                  \hlkwc{start.depth}\hldef{=}\hlnum{1}\hldef{,} \hlkwc{p.up} \hldef{=}\hlnum{0.1}\hldef{,} \hlkwc{p.down}\hldef{=}\hlnum{0}\hldef{,} \hlkwc{x.step}\hldef{=}\hlnum{5}\hldef{)}
+  \hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+The resulting structures are plotted with \code{plot.macros()} (Fig. \ref{fig:macsim2}):
+
+\begin{figure}[h]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{with}\hldef{(test.sim.grid,}
+      \hlkwd{plot.macros}\hldef{(xnew, znew, sim2[[}\hlnum{1}\hldef{]])}
+\hldef{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{FIG/CFvigdiscretsim2-1} 
+\end{knitrout}
+\caption{\label{fig:macsim2} Schematic of slope line and combination of simulated vertical
+and horizontal macropores}
+\end{center}
+\end{figure}
+
+
+The grid \code{sim2} holds all of the simulated scaling factors and has the fine spatial 
+resolution of the simulation grid. 
+
+The next step is to determine a appropriate model discretization with
+a reduced number of nodes. In the case of combined macropore simulations, the discretization 
+functions are applied subsequently on each simulation result (Fig. \ref{fig:inddiscret}), and the resulting eta- and xsi-vectors
+are combined. When doing this, care must be taken not to duplicate 
+the regular nodes that are inserted at regular distances, which therefore are only introduced 
+in the first discretization \code{disc.sim1} (same as above). The combined vectors need to be sorted and have duplicates removed. Note: Care should be taken to which digit the vectors are rounded - the idea is to remove eta / xsi-values that are so close to each other that they represent the same node. This closeness depends on how fine the discretization and how long the slope is, so the number of digits might need adaptation.
+
+\begin{figure}[h]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlkwd{layout}\hldef{(}\hlnum{1}\hlopt{:}\hlnum{2}\hldef{);}
+
+ \hldef{disc.sim1} \hlkwb{<-} \hlkwd{discretize.mak}\hldef{(sim1,} \hlkwc{maxdists} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{4}\hldef{,}\hlnum{2}\hldef{),} \hlkwc{plot}\hldef{=T)}
+ \hldef{disc.sim2} \hlkwb{<-} \hlkwd{discretize.pipe}\hldef{(sim2,} \hlkwc{plot}\hldef{=T,} \hlkwc{reg}\hldef{=F)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{FIG/CFvigcombdiscret-1} 
+\begin{kframe}\begin{alltt}
+ \hldef{disc.sim2[[}\hlsng{"xsi"}\hldef{]]} \hlkwb{<-} \hlkwd{sort}\hldef{(}\hlkwd{unique}\hldef{(}\hlkwd{round}\hldef{(}\hlkwd{c}\hldef{(disc.sim1[[}\hlsng{"xsi"}\hldef{]],}
+                                           \hldef{disc.sim2[[}\hlsng{"xsi"}\hldef{]]),} \hlnum{3}\hldef{)))}
+ \hldef{disc.sim2[[}\hlsng{"eta"}\hldef{]]} \hlkwb{<-} \hlkwd{sort}\hldef{(}\hlkwd{unique}\hldef{(}\hlkwd{round}\hldef{(}\hlkwd{c}\hldef{(disc.sim1[[}\hlsng{"eta"}\hldef{]],}
+                                           \hldef{disc.sim2[[}\hlsng{"eta"}\hldef{]]),}\hlnum{2}\hldef{)) )}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\caption{\label{fig:inddiscret} Individual model discretizations for \code{sim1} (top) and \code{sim2} (bottom).}
+\end{center}
+\end{figure}
+
+
+To visualize the combined discretization vectors, the following code chunk can be used:
+
+\begin{figure}[h]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+ \hlcom{## Plot discretization "by hand"}
+  \hlkwd{plot}\hldef{(}\hlnum{0}\hlopt{:}\hlnum{1}\hldef{,}\hlnum{0}\hlopt{:}\hlnum{1}\hldef{,}\hlkwc{t}\hldef{=}\hlsng{"n"}\hldef{,} \hlkwc{ann}\hldef{=F)}
+   \hlkwd{abline}\hldef{(}\hlkwc{v}\hldef{=disc.sim2[[}\hlsng{"xsi"}\hldef{]],} \hlkwc{col}\hldef{=}\hlnum{8}\hldef{)}
+   \hlkwd{abline}\hldef{(}\hlkwc{h} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{0}\hldef{,}\hlnum{1}\hldef{) )}
+   \hlkwd{abline}\hldef{(}\hlkwc{h}\hldef{= disc.sim2[[}\hlsng{"eta"}\hldef{]],} \hlkwc{col}\hldef{=}\hlnum{3}\hldef{)}
+   \hlkwd{image}\hldef{(}\hlkwd{t}\hldef{(sim1[[}\hlnum{1}\hldef{]]}\hlopt{>}\hlnum{1}\hldef{)[,}\hlkwd{nrow}\hldef{(sim1[[}\hlnum{1}\hldef{]])}\hlopt{:}\hlnum{1}\hldef{],} \hlkwc{col}\hldef{=}\hlnum{0}\hlopt{:}\hlnum{1}\hldef{,} \hlkwc{add}\hldef{=T)}
+   \hlkwd{image}\hldef{(}\hlkwd{t}\hldef{(sim2[[}\hlnum{1}\hldef{]]}\hlopt{>}\hlnum{1}\hldef{)[,}\hlkwd{nrow}\hldef{(sim2[[}\hlnum{1}\hldef{]])}\hlopt{:}\hlnum{1}\hldef{],} \hlkwc{col}\hldef{=}\hlnum{0}\hlopt{:}\hlnum{1}\hldef{,} \hlkwc{add}\hldef{=T)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{FIG/CFvigplotcombdiscret-1} 
+\end{knitrout}
+\caption{\label{fig:combineddiscret} Combined model discretizations for \code{sim1} and \code{sim2}.}
+\end{center}
+\end{figure}
+
+
+From here on, the approach proceeds as described in Section \ref{simplemacro}.
+The next step would thus be the definition of a slope list with the slope line and the new model discretization:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hldef{sim2.slope} \hlkwb{<-} \hlkwd{list}\hldef{(}
+        \hlkwc{xh} \hldef{= test.slope}\hlopt{$}\hldef{east,}
+        \hlkwc{yh} \hldef{= test.slope}\hlopt{$}\hldef{north,}
+        \hlkwc{zh} \hldef{= test.slope}\hlopt{$}\hldef{elev,}
+        \hlkwc{bh}  \hldef{= test.slope}\hlopt{$}\hldef{slope.width,}
+        \hlkwc{tot.area} \hldef{=} \hlnum{12} \hldef{,}
+        \hlkwc{numh} \hldef{=} \hlnum{1}\hldef{,}
+        \hlkwc{htyp} \hldef{=} \hlnum{1}\hldef{,}
+        \hlkwc{dyy} \hldef{=} \hlnum{2}\hldef{,}
+        \hlkwc{xsi} \hldef{= disc.sim2[[}\hlsng{"xsi"}\hldef{]],}
+        \hlkwc{eta} \hldef{= disc.sim2[[}\hlsng{"eta"}\hldef{]],}
+        \hlkwc{out.file}\hldef{=}\hlsng{"sim2.geo"}      \hldef{)}
+
+  \hldef{sim2.geom} \hlkwb{<-}  \hlkwd{make.geometry}\hldef{(sim2.slope,} \hlkwc{project.path}\hldef{= indir)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+A grid that indicates the positions of macropres is generated with \code{ mac.grid()}:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hldef{sim2.grid} \hlkwb{<-} \hlkwd{mac.grid}\hldef{(}\hlkwc{relfak} \hldef{= sim2[[}\hlnum{1}\hldef{]],}
+                         \hlkwc{xnew} \hldef{= test.sim.grid}\hlopt{$}\hldef{xnew,}
+                          \hlkwc{znew} \hldef{= test.sim.grid}\hlopt{$}\hldef{znew,}
+                           \hlkwc{xsi_new} \hldef{= disc.sim2[[}\hlsng{"xsi"}\hldef{]],}
+                            \hlkwc{eta_new} \hldef{= disc.sim2[[}\hlsng{"eta"}\hldef{]],}
+                             \hlkwc{plottin} \hldef{= T)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{FIG/CFvigmacgrid2-1} 
+\end{knitrout}
+
+$\vdots$
+\subsubsection{Other files }
+The remaining steps would be the definition of control files, multiplier grids, surface 
+attributes and the assignment of soil types in the same manner as described above.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\part[Postprocessing of CATFLOW simulations]{Postprocessing of \proglang{CATFLOW} simulations}
+\label{sec:postproc}
+
+This part describes how the result files from \proglang{CATFLOW} simulations can be read into \proglang{R} for visualisation and further analyses.
+
+
+\section{Cleaning the simulation directory}
+
+
+By inspection of the output directory of the first example, we notice that some of 
+the files produced by CATFLOW are not really useful:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{print}\hldef{(}\hlkwd{dir}\hldef{(}\hlkwd{file.path}\hldef{(exampledir,} \hlsng{"out"}\hldef{)))}
+\end{alltt}
+\begin{verbatim}
+##  [1] "bilanz.csv" "c.out"      "evapo.out"  "fl_eta.out" "fl_xsi.out"
+##  [6] "gang.out"   "hko.out"    "log.out"    "psi.fin"    "psi.out"   
+## [11] "qoben.out"  "relsat.out" "senken.out" "sko.out"    "theta.out" 
+## [16] "ve.out"     "vg_tab.out" "vx.out"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+ As we have not simulated solute transport or a drainage network, the
+corresponding output files are redundant, and we could therefore delete the files using the function \code{del.files}:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{del.files}\hldef{(exampledir,} \hlkwc{file2del}\hldef{=}\hlkwd{c}\hldef{(}\hlsng{"ve.out"}\hldef{,} \hlsng{"vx.out"}\hldef{,} \hlsng{"c.out"}\hldef{,} \hlsng{"gang.out"}\hldef{))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+%jw leave or skip?
+Further cleaning of subdirectories will especially become useful with larger simulation projects, for example for simulations that differ only in some aspects (macropore geometry, land-use definitions, soil type parameters), but otherwise share a lot of input files.
+In these cases you might like to get rid of the input directory in the simulation folders, but retain the output files and some of the input. This can be achieved with the function
+\code{catf.batch.cleanup}:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{catf.batch.cleanup}\hldef{(exampledir,} \hlkwc{indir} \hldef{=} \hlsng{"./in"}\hldef{,} \hlkwc{interact} \hldef{=} \hlnum{TRUE}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+%%jw leave or skip?
+
+
+\section{Reading result files}
+
+Result files from CATFLOW simulations can be read using the functions :
+
+\begin{itemize}
+\item \code{read.catf.balance()}
+\item \code{read.surfrun.out()}
+\item \code{read.climate()} 
+\item \code{read.catf.results()}
+\item \code{read.climate()}
+\item \code{read.evapo()}
+\item \code{read.precip()}
+\item \code{read.soil.mat()}
+\item \code{read.channelflow.out()}
+\end{itemize}
+
+
+\section{Visualisation}
+
+Results from CATFLOW simulations can be visualised using the functions :
+
+\begin{itemize}
+\item \code{plot.catf.bal()}
+\item \code{plot.catf.grid()}
+\item \code{plot.catf.movie()}
+\end{itemize}
+
+\section{Miscellaneous}
+
+Further functions include:
+
+\begin{itemize}
+\item{\code{use.psi.fin()}: }{Use final matric potential to assign initial conditions for a subsequent model run}
+\item{\code{read.facmat()}: }{Read a file with node-wise specification of values, e.g. initial conditions}
+\item{\code{get.realworld.coords()}: }{Calculate the real-world coordinates of a simulation domain}
+\item{\code{node2poly()}: }{Calculate polygons around computational nodes}
+\item{\code{color.codes()}: }{Color codes for plotting}
+\end{itemize}
+The latter two functions are also used in the visualisation routines.
+
+
+
+
+\clearpage
+\section*{End of tutorial}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+A few things are left to tidy-up at the end of this tutorial session: 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{try}\hldef{(}\hlkwd{detach}\hldef{(test.geom),} \hlkwc{silent}\hldef{=}\hlnum{TRUE}\hldef{)}  \hlcom{# detach test geometry object}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+\section*{Computational details}
+
+The results in this vignette were obtained using the package 
+\pkg{Catflow} 0.998,
+with R version 4.3.3 (2024-02-29 ucrt) and the packages
+\pkg{deSolve} 1.40,
+\pkg{RColorBrewer} 1.1--3,
+\pkg{splines} 4.3.3,
+\pkg{xts} 0.13.2 and
+\pkg{zoo} 1.8--12.
+%The \pkg{Catflow} package is available via SVN with guest login, visit 
+%\url{http://www.experimental-hydrology.net/models/index.php?title=Catflow_-_SVN_repository/}.
+\proglang{R} itself and the additional packages are available from
+CRAN at \url{http://CRAN.R-project.org/}.
+
+
+%%% Hardcoded bibliography to get rid of bib file
+
+%\begin{thebibliography}{3}
+%\newcommand{\enquote}[1]{``#1''}
+%\providecommand{\natexlab}[1]{#1}
+%\providecommand{\url}[1]{\texttt{#1}}
+%\providecommand{\urlprefix}{URL }
+%\expandafter\ifx\csname urlstyle\endcsname\relax
+  %\providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  %\providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  %\urlstyle{rm}\Url}\fi
+%\providecommand{\eprint}[2][]{\url{#2}}
+%
+%\bibitem[{Maurer and Zehe(2007)}]{Maurer+Zehe:2007}
+%Maurer T, Zehe E (2007).
+%\newblock \emph{CATFLOW User Guide and Program Documentation (Version
+  %Catstat)}.
+%\newblock
+  %\urlprefix\url{http://www.experimental-hydrology.net/models/index.php?title=Catflow_-_Manual}.
+%
+%\bibitem[{{\proglang{R} Development Core Team}(2009)}]{R:2009}
+%{\proglang{R} Development Core Team} (2009).
+%\newblock \emph{\proglang{R}: {A} Language and Environment for Statistical
+  %Computing}.
+%\newblock \proglang{R} Foundation for Statistical Computing, Vienna, Austria.
+%\newblock {ISBN} 3-900051-07-0, \urlprefix\url{http://www.R-project.org/}.
+%
+%
+%\end{thebibliography}
+
+
+
+
+\end{document}
+
+

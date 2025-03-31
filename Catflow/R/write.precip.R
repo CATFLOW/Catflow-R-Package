@@ -40,7 +40,7 @@ function( raindat,
  write( zeile2, output.file, append = T)
  write(format(knickdat, width = c(8,4)), output.file, ncolumns = 2, sep = " ", append = T)
             
-print(paste("Generated precipitation file '", output.file, "'.",sep = "") )         
+print(paste("Generated precipitation file '", basename(output.file), "'.",sep = "") )         
 
 return(invisible())
 }

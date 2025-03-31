@@ -47,11 +47,11 @@ names(val) <- numh
  # write ini files
  if(length(val) == 1) {
    outfile <- file.path(inidir, paste(ininame,".ini", sep = ""))
-   write.facmat(outfile, et = 1:ynum, xs = 1:xnum, headr = paste("PSI   0", numh, ynum, xnum, 1), fac = val[[1]])
+   write.facmat(outfile, eta = 1:ynum, xsi = 1:xnum, header = paste("PSI   0", numh, ynum, xnum, 1), fac = val[[1]])
  } else {
    for(i in 1:length(val)) {
    outfile <- file.path(inidir, paste(ininame, numh[i],".ini", sep = ""))
-   write.facmat(outfile, et = 1:ynum[i], xs = 1:xnum[i], headr = paste("PSI   0", numh[i], ynum[i], xnum[i], 1), fac = val[[i]])
+   write.facmat(outfile, eta = 1:ynum[i], xsi = 1:xnum[i], header = paste("PSI   0", numh[i], ynum[i], xnum[i], 1), fac = val[[i]])
    }
   } 
  

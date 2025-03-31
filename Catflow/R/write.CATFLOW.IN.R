@@ -11,7 +11,7 @@ function(control.files, project.path = NULL, flag = 2)
  write.table(controllist, 
        file = main.file, row.names = FALSE, col.names = F, quote = F)
   
- print(paste("File '", main.file,"' produced with", length(control.files), "control file(s)." ))
+ print(paste("File '", basename(main.file),"' produced with", length(control.files), "control file(s)." ))
 
  return(invisible())
 }

@@ -1,5 +1,7 @@
-*.Rcheck/*
+/*.Rcheck/*
 OLD/*
-*.gz
-*.r
-*.R
+/*.gz
+/*.r
+/*.R
+/*.code-workspace
+/Catflow/vignettes/FIG/*

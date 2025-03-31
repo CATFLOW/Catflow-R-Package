@@ -67,7 +67,7 @@ function( climadat,
     output.file, ncolumns = 4, sep  = " ", append = T)
     }
 
-print(paste("Generated climate file '", output.file, "'.",sep = "") )         
+print(paste("Generated climate file '", basename(output.file), "'.",sep = "") )         
 
 return(invisible())
 }
