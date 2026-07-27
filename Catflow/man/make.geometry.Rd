@@ -27,15 +27,15 @@ make.geometry(slope.list,
   \item{slope.list}{
  a list with the components:
  
-    -  xh       : x-coordinate of slope line (northing) [m]
+    -  xh       : x-coordinate of slope line (northing) [m] (vector of same length as zh; or single value)
     
-    -  yh       : y-coordinate of slope line (easting) [m]
+    -  yh       : y-coordinate of slope line (easting) [m] (vector of same length as zh; or single value)
     
-    -  zh       : z-coordinate of slope line (surface elevation) [m]
+    -  zh       : z-coordinate of slope line (surface elevation) [m] (vector)
     
     -  tot.area : total area of slope [m²]
     
-    -  bh       : slope width [m]
+    -  bh       : slope width [m] (vector of same length as zh; or single value)
     
     -  dyy      : thickness of profile [m]
     

@@ -27,14 +27,28 @@ function( # # # produces a geometry file for the CATFLOW code
   xh <- slope.list[["xh"]] 
   yh <- slope.list[["yh"]] 
   zh <- slope.list[["zh"]]
-  tot.area <- slope.list[["tot.area"]]
   bh <- slope.list[["bh"]]
+
+  # check lengths
+  # if a single value is given, it is repeated to match the longest vector
+  longest <- max(length(xh), length(yh), length(zh), length(bh))
+    if(length(xh) ==1) xh <- rep(xh, longest)
+    if(length(yh) ==1) yh <- rep(yh, longest)
+    if(length(bh) ==1) bh <- rep(bh, longest)
+
+    if(length(xh) != longest) stop("xh has wrong length!")
+    if(length(yh) != longest) stop("yh has wrong length!")
+    if(length(zh) != longest) stop("zh has wrong length!")
+    if(length(bh) != longest) stop("bh has wrong length!")
+
+
+  tot.area <- slope.list[["tot.area"]]
   dyy <- slope.list[["dyy"]]
   xsi <- slope.list[["xsi"]]
   if(any(xsi>1) || any(xsi<0)) stop("xsi not limited to the interval 0 - 1!")
   eta <- slope.list[["eta"]]
    if(any(eta>1) || any(eta <0)) stop("eta not limited to the interval 0 - 1!")
-  htyp <- slope.list[["htyp"]]
+
   
   # check if file name is given, and optionally create directory
   if(!is.null( slope.list[["out.file"]])){
